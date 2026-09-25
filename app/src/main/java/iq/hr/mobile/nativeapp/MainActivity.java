@@ -44,7 +44,7 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "R2.0.2";
+    private static final String APP_VERSION = "R2.0.3";
     private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
     private static final String CACHE_FILE = "employees_cache_r2.json";
 
@@ -124,7 +124,7 @@ public class MainActivity extends Activity {
         LinearLayout hero = card(18);
         hero.setPadding(dp(18), dp(18), dp(18), dp(18));
         TextView title = text("نظام الموارد البشرية", 24, TEXT, true);
-        TextView subtitle = text("نسخة Android Native " + APP_VERSION + " — قاعدة بيانات وبحث فعلي", 13, MUTED, false);
+        TextView subtitle = text("نسخة Android Native " + APP_VERSION + " — قاعدة بيانات وبطاقة موظف فعلية", 13, MUTED, false);
         hero.addView(title);
         hero.addView(space(6));
         hero.addView(subtitle);
@@ -166,7 +166,7 @@ public class MainActivity extends Activity {
         root.addView(syncBtn);
 
         root.addView(space(12));
-        TextView footer = text("R2.0.2 يقرأ data/employees.json من مستودع GitHub ويحفظ نسخة محلية داخل التطبيق.", 12, MUTED, false);
+        TextView footer = text("R2.0.3 يقرأ data/employees.json ويعرض بطاقة موظف تفصيلية داخل التطبيق.", 12, MUTED, false);
         footer.setGravity(Gravity.CENTER);
         root.addView(footer);
     }
@@ -277,6 +277,8 @@ public class MainActivity extends Activity {
     private LinearLayout employeeCard(Employee e) {
         LinearLayout c = card(18);
         c.setPadding(dp(14), dp(14), dp(14), dp(14));
+        c.setOnClickListener(v -> showEmployeeProfile(e));
+
         LinearLayout top = horizontal();
         top.addView(badge(e.typeLabel(), "عقد".equals(e.typeLabel()) ? ORANGE : GREEN));
         top.addView(spaceW(8));
@@ -291,6 +293,12 @@ public class MainActivity extends Activity {
         c.addView(text("التحصيل: " + safe(e.education), 13, MUTED, false));
         c.addView(text("تاريخ التعيين: " + shortDate(e.hireDate), 13, MUTED, false));
         c.addView(space(10));
+
+        LinearLayout actions = horizontal();
+        Button open = primaryButton("فتح بطاقة الموظف");
+        open.setOnClickListener(v -> showEmployeeProfile(e));
+        actions.addView(open, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        actions.addView(spaceW(8));
         Button choose = outlineButton("اختيار للملاحظات");
         choose.setOnClickListener(v -> {
             selectedEmployee = e;
@@ -298,8 +306,107 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "تم اختيار الموظف للملاحظات", Toast.LENGTH_SHORT).show();
             showManagerNotes();
         });
-        c.addView(choose);
+        actions.addView(choose, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        c.addView(actions);
         return c;
+    }
+
+    private void showEmployeeProfile(Employee e) {
+        baseScreen();
+
+        LinearLayout header = card(20);
+        header.setPadding(dp(18), dp(18), dp(18), dp(18));
+        LinearLayout top = horizontal();
+        top.addView(badge(e.typeLabel(), "عقد".equals(e.typeLabel()) ? ORANGE : GREEN));
+        top.addView(spaceW(8));
+        top.addView(badge("رقم وظيفي: " + safe(e.id), PRIMARY));
+        header.addView(top);
+        header.addView(space(10));
+        header.addView(text(e.name, 22, TEXT, true));
+        header.addView(space(6));
+        header.addView(text(safe(e.branch), 14, MUTED, false));
+        header.addView(space(6));
+        header.addView(text(safe(e.jobTitle), 14, MUTED, false));
+        root.addView(header);
+
+        root.addView(space(12));
+        root.addView(infoSection("المعلومات الوظيفية",
+                infoRow("الشعبة", safe(e.branch))
+                        + infoRow("العنوان الوظيفي", safe(e.jobTitle))
+                        + infoRow("الحالة", safe(e.type))
+                        + infoRow("الدرجة", safe(e.grade))
+                        + infoRow("المرحلة", safe(e.step))
+                        + infoRow("الراتب", formatSalary(e.salary))
+        ));
+
+        root.addView(space(10));
+        root.addView(infoSection("المعلومات الشخصية والهوية",
+                infoRow("اسم الأم", safe(e.motherName))
+                        + infoRow("الجنس", safe(e.gender))
+                        + infoRow("رقم الهوية", safe(e.identityNo))
+                        + infoRow("جهة الإصدار", safe(e.identityIssuer))
+                        + infoRow("تاريخ الإصدار", shortDate(e.identityIssueDate))
+                        + infoRow("تاريخ الولادة", shortDate(e.birthDate))
+        ));
+
+        root.addView(space(10));
+        root.addView(infoSection("التحصيل والتخصص",
+                infoRow("التحصيل", safe(e.education))
+                        + infoRow("الاختصاص", safe(e.specialization))
+        ));
+
+        root.addView(space(10));
+        root.addView(infoSection("التعيين والملاحظات",
+                infoRow("تاريخ التعيين", shortDate(e.hireDate))
+                        + infoRow("آخر تحديث للبيانات", shortDate(e.sourceUpdatedAt))
+                        + infoRow("ملاحظات", safe(e.notes))
+        ));
+
+        root.addView(space(14));
+        Button note = primaryButton("اختيار الموظف في ملاحظات المدير");
+        note.setOnClickListener(v -> {
+            selectedEmployee = e;
+            currentRole = "hr_manager";
+            showManagerNotes();
+        });
+        root.addView(note);
+
+        root.addView(space(8));
+        Button backList = outlineButton("الرجوع إلى القائمة");
+        backList.setOnClickListener(v -> showEmployeeDirectory());
+        root.addView(backList);
+
+        root.addView(space(8));
+        Button backHome = outlineButton("الرجوع إلى الرئيسية");
+        backHome.setOnClickListener(v -> showHome());
+        root.addView(backHome);
+    }
+
+    private LinearLayout infoSection(String title, String body) {
+        LinearLayout box = card(18);
+        box.setPadding(dp(16), dp(14), dp(16), dp(14));
+        box.addView(text(title, 17, TEXT, true));
+        box.addView(space(8));
+        TextView content = text(body, 13, TEXT, false);
+        content.setLineSpacing(dp(2), 1.0f);
+        box.addView(content);
+        return box;
+    }
+
+    private String infoRow(String label, String value) {
+        return label + ": " + safe(value) + "
+";
+    }
+
+    private String formatSalary(String value) {
+        String v = safe(value);
+        if ("-".equals(v)) return v;
+        try {
+            long n = Long.parseLong(v.replace(",", "").trim());
+            return String.format(Locale.US, "%,d", n) + " دينار";
+        } catch (Exception ignored) {
+            return v;
+        }
     }
 
     private void showStatus() {
@@ -449,7 +556,7 @@ public class MainActivity extends Activity {
             String noteText = note.getText().toString().trim();
             notes.add(0, new ManagerNote("MN-" + System.currentTimeMillis(), currentMovement, selectedEmployee.name,
                     selectedEmployee.branch, currentMovement.equals("ملاحظة") ? "" : "الشعبة الجديدة", noteText, "new", now()));
-            Toast.makeText(this, "تم إرسال الملاحظة محليًا في R2.0.2", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "تم إرسال الملاحظة محليًا في R2.0.3", Toast.LENGTH_SHORT).show();
             selectedEmployee = null;
             showManagerNotes();
         });
@@ -700,7 +807,15 @@ public class MainActivity extends Activity {
             String mother = first(o, "motherName");
             String identity = first(o, "identityNo");
             String hireDate = first(o, "hireDate");
-            target.add(new Employee(id, name, division, status.length() == 0 ? type : status, jobTitle, grade, step, salary, education, mother, identity, hireDate));
+            String gender = first(o, "gender");
+            String identityIssueDate = first(o, "identityIssueDate");
+            String identityIssuer = first(o, "identityIssuer");
+            String specialization = first(o, "specialization");
+            String birthDate = first(o, "birthDate");
+            String notes = first(o, "notes");
+            String sourceUpdatedAt = first(o, "sourceUpdatedAt");
+            target.add(new Employee(id, name, division, status.length() == 0 ? type : status, jobTitle, grade, step, salary, education, mother, identity, hireDate,
+                    gender, identityIssueDate, identityIssuer, specialization, birthDate, notes, sourceUpdatedAt));
         }
     }
 
@@ -954,7 +1069,21 @@ public class MainActivity extends Activity {
         final String motherName;
         final String identityNo;
         final String hireDate;
+        final String gender;
+        final String identityIssueDate;
+        final String identityIssuer;
+        final String specialization;
+        final String birthDate;
+        final String notes;
+        final String sourceUpdatedAt;
+
         Employee(String id, String name, String branch, String type, String jobTitle, String grade, String step, String salary, String education, String motherName, String identityNo, String hireDate) {
+            this(id, name, branch, type, jobTitle, grade, step, salary, education, motherName, identityNo, hireDate,
+                    "", "", "", "", "", "", "");
+        }
+
+        Employee(String id, String name, String branch, String type, String jobTitle, String grade, String step, String salary, String education, String motherName, String identityNo, String hireDate,
+                 String gender, String identityIssueDate, String identityIssuer, String specialization, String birthDate, String notes, String sourceUpdatedAt) {
             this.id = id == null ? "" : id;
             this.name = name == null ? "" : name;
             this.branch = branch == null ? "" : branch;
@@ -967,6 +1096,13 @@ public class MainActivity extends Activity {
             this.motherName = motherName == null ? "" : motherName;
             this.identityNo = identityNo == null ? "" : identityNo;
             this.hireDate = hireDate == null ? "" : hireDate;
+            this.gender = gender == null ? "" : gender;
+            this.identityIssueDate = identityIssueDate == null ? "" : identityIssueDate;
+            this.identityIssuer = identityIssuer == null ? "" : identityIssuer;
+            this.specialization = specialization == null ? "" : specialization;
+            this.birthDate = birthDate == null ? "" : birthDate;
+            this.notes = notes == null ? "" : notes;
+            this.sourceUpdatedAt = sourceUpdatedAt == null ? "" : sourceUpdatedAt;
         }
         String typeLabel() {
             String t = type == null ? "" : type.toLowerCase(Locale.ROOT);
