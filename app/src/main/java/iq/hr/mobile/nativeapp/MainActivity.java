@@ -2,6 +2,8 @@ package iq.hr.mobile.nativeapp;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -10,22 +12,41 @@ import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.content.Context;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
+
+    private static final String APP_VERSION = "R2.0.2";
+    private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
+    private static final String CACHE_FILE = "employees_cache_r2.json";
 
     private static final int BG = Color.rgb(245, 247, 251);
     private static final int CARD = Color.WHITE;
@@ -46,22 +67,37 @@ public class MainActivity extends Activity {
     private final List<ManagerNote> notes = new ArrayList<>();
     private LinearLayout notesContainer;
     private String currentFilter = "الكل";
+    private String dataVersion = "بيانات نموذجية";
+    private String lastSync = "لم تتم مزامنة فعلية بعد";
+    private int permCount = 0;
+    private int contCount = 0;
+    private boolean isSyncing = false;
+    private final Handler ui = new Handler(Looper.getMainLooper());
+    private final ExecutorService io = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setStatusBarColor(BG);
-        seedData();
+        seedFallbackData();
+        loadCachedEmployees();
+        seedNotes();
         showHome();
     }
 
-    private void seedData() {
-        employees.add(new Employee("1001", "أحمد محمد حسن", "شعبة الموارد البشرية", "دائم"));
-        employees.add(new Employee("1002", "علي حسين كاظم", "شعبة الحسابات", "دائم"));
-        employees.add(new Employee("1003", "سجاد حسن جبار", "شعبة تكنولوجيا المعلومات", "عقد"));
-        employees.add(new Employee("1004", "زهراء عبد الكريم", "شعبة التخطيط", "دائم"));
-        employees.add(new Employee("1005", "مصطفى صالح مهدي", "شعبة المتابعة", "عقد"));
+    private void seedFallbackData() {
+        employees.clear();
+        employees.add(new Employee("1001", "أحمد محمد حسن", "شعبة الموارد البشرية", "دائم", "موظف", "", "", "", "", "", "", ""));
+        employees.add(new Employee("1002", "علي حسين كاظم", "شعبة الحسابات", "دائم", "موظف", "", "", "", "", "", "", ""));
+        employees.add(new Employee("1003", "سجاد حسن جبار", "شعبة تكنولوجيا المعلومات", "عقد", "موظف", "", "", "", "", "", "", ""));
+        employees.add(new Employee("1004", "زهراء عبد الكريم", "شعبة التخطيط", "دائم", "موظف", "", "", "", "", "", "", ""));
+        employees.add(new Employee("1005", "مصطفى صالح مهدي", "شعبة المتابعة", "عقد", "موظف", "", "", "", "", "", "", ""));
+        permCount = 3;
+        contCount = 2;
+    }
 
+    private void seedNotes() {
+        if (!notes.isEmpty()) return;
         notes.add(new ManagerNote("MN-10001", "نقل", "أحمد محمد حسن", "شعبة الحسابات", "شعبة الموارد البشرية", "يرجى اتخاذ ما يلزم بخصوص النقل.", "new", now()));
         notes.add(new ManagerNote("MN-10002", "تنسيب", "زهراء عبد الكريم", "شعبة التخطيط", "شعبة الموارد البشرية", "تنسيب مؤقت لمدة شهر.", "reviewed", now()));
     }
@@ -88,7 +124,7 @@ public class MainActivity extends Activity {
         LinearLayout hero = card(18);
         hero.setPadding(dp(18), dp(18), dp(18), dp(18));
         TextView title = text("نظام الموارد البشرية", 24, TEXT, true);
-        TextView subtitle = text("نسخة Android Native R2.0.1 — تصميم أولي مطابق لترتيب النسخة الحالية", 13, MUTED, false);
+        TextView subtitle = text("نسخة Android Native " + APP_VERSION + " — قاعدة بيانات وبحث فعلي", 13, MUTED, false);
         hero.addView(title);
         hero.addView(space(6));
         hero.addView(subtitle);
@@ -99,6 +135,8 @@ public class MainActivity extends Activity {
         roleBar.addView(spaceW(8));
         roleBar.addView(roleButton("مدير الموارد البشرية", "hr_manager"));
         hero.addView(roleBar);
+        hero.addView(space(12));
+        hero.addView(dataStatusMini());
         root.addView(hero);
 
         root.addView(space(14));
@@ -118,14 +156,181 @@ public class MainActivity extends Activity {
         root.addView(grid2);
 
         root.addView(space(16));
-        Button notesBtn = primaryButton("فتح ملاحظات المدير");
-        notesBtn.setOnClickListener(v -> showManagerNotes());
-        root.addView(notesBtn);
+        Button listBtn = primaryButton("فتح قائمة الموظفين");
+        listBtn.setOnClickListener(v -> showEmployeeDirectory());
+        root.addView(listBtn);
+        root.addView(space(10));
+        Button syncBtn = outlineButton(isSyncing ? "جاري تحديث البيانات..." : "تحديث بيانات الموظفين من GitHub");
+        syncBtn.setEnabled(!isSyncing);
+        syncBtn.setOnClickListener(v -> syncEmployees(true));
+        root.addView(syncBtn);
 
         root.addView(space(12));
-        TextView footer = text("هذه حزمة بداية Native. الربط الحقيقي مع GitHub / Google Sheet / Firebase يتم في مراحل R2 التالية.", 12, MUTED, false);
+        TextView footer = text("R2.0.2 يقرأ data/employees.json من مستودع GitHub ويحفظ نسخة محلية داخل التطبيق.", 12, MUTED, false);
         footer.setGravity(Gravity.CENTER);
         root.addView(footer);
+    }
+
+    private LinearLayout dataStatusMini() {
+        LinearLayout box = card(14);
+        box.setPadding(dp(12), dp(10), dp(12), dp(10));
+        TextView a = text("الموظفون: " + employees.size() + "  |  دائم: " + permCount + "  |  عقود: " + contCount, 13, TEXT, true);
+        TextView b = text("البيانات: " + dataVersion + "\nآخر تحديث: " + lastSync, 11, MUTED, false);
+        box.addView(a);
+        box.addView(space(5));
+        box.addView(b);
+        return box;
+    }
+
+    private void showEmployeeDirectory() {
+        baseScreen();
+
+        LinearLayout header = card(18);
+        header.setPadding(dp(18), dp(18), dp(18), dp(18));
+        header.addView(text("القائمة الرئيسية للموظفين", 22, TEXT, true));
+        header.addView(space(5));
+        header.addView(text("بحث فعلي من بيانات GitHub مع بطاقة موظف أولية ونسخة محلية احتياطية", 13, MUTED, false));
+        header.addView(space(12));
+        LinearLayout badges = horizontal();
+        badges.addView(badge(employees.size() + " موظف", PRIMARY));
+        badges.addView(spaceW(8));
+        badges.addView(badge("دائم " + permCount, GREEN));
+        badges.addView(spaceW(8));
+        badges.addView(badge("عقود " + contCount, ORANGE));
+        header.addView(badges);
+        root.addView(header);
+
+        root.addView(space(12));
+        LinearLayout searchCard = card(18);
+        searchCard.setPadding(dp(16), dp(16), dp(16), dp(16));
+        searchCard.addView(text("بحث الموظفين", 18, TEXT, true));
+        searchCard.addView(space(6));
+        searchCard.addView(text("اكتب حرفين أو أكثر من الاسم أو الرقم الوظيفي أو الشعبة. لا يتم عرض كل الأسماء عند الضغط فقط.", 12, MUTED, false));
+        searchCard.addView(space(10));
+        EditText search = editText("اكتب اسم الموظف أو الرقم الوظيفي...");
+        search.setSingleLine(true);
+        searchCard.addView(search);
+        searchCard.addView(space(10));
+        TextView status = text("جاهز للبحث", 12, MUTED, false);
+        searchCard.addView(status);
+        root.addView(searchCard);
+
+        root.addView(space(10));
+        LinearLayout results = new LinearLayout(this);
+        results.setOrientation(LinearLayout.VERTICAL);
+        root.addView(results);
+        renderEmployeeSearchResults("", results, status);
+
+        search.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus && search.getText().toString().trim().length() < 2) {
+                results.removeAllViews();
+                results.addView(emptyCard("اكتب حرفين أو أكثر حتى تظهر النتائج"));
+                status.setText("لا يتم عرض جميع الأسماء تلقائيًا");
+            }
+        });
+
+        search.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                renderEmployeeSearchResults(s.toString(), results, status);
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+
+        root.addView(space(14));
+        Button sync = primaryButton(isSyncing ? "جاري تحديث البيانات..." : "تحديث البيانات الآن");
+        sync.setEnabled(!isSyncing);
+        sync.setOnClickListener(v -> syncEmployees(true));
+        root.addView(sync);
+        root.addView(space(8));
+        Button back = outlineButton("الرجوع إلى الرئيسية");
+        back.setOnClickListener(v -> showHome());
+        root.addView(back);
+    }
+
+    private void renderEmployeeSearchResults(String query, LinearLayout container, TextView status) {
+        container.removeAllViews();
+        String q = normalize(query);
+        if (q.length() < 2) {
+            container.addView(emptyCard("اكتب حرفين أو أكثر للبحث في " + employees.size() + " موظف"));
+            status.setText("البيانات الجاهزة: " + employees.size() + " موظف");
+            return;
+        }
+        int shown = 0;
+        int matched = 0;
+        for (Employee e : employees) {
+            if (employeeMatches(e, q)) {
+                matched++;
+                if (shown < 50) {
+                    container.addView(employeeCard(e));
+                    container.addView(space(8));
+                    shown++;
+                }
+            }
+        }
+        if (matched == 0) {
+            container.addView(emptyCard("لا توجد نتائج مطابقة"));
+        }
+        status.setText("النتائج: " + matched + (matched > 50 ? " — عُرضت أول 50 نتيجة فقط" : ""));
+    }
+
+    private LinearLayout employeeCard(Employee e) {
+        LinearLayout c = card(18);
+        c.setPadding(dp(14), dp(14), dp(14), dp(14));
+        LinearLayout top = horizontal();
+        top.addView(badge(e.typeLabel(), "عقد".equals(e.typeLabel()) ? ORANGE : GREEN));
+        top.addView(spaceW(8));
+        top.addView(badge("رقم: " + safe(e.id), PRIMARY));
+        c.addView(top);
+        c.addView(space(8));
+        c.addView(text(e.name, 18, TEXT, true));
+        c.addView(space(7));
+        c.addView(text("الشعبة: " + safe(e.branch), 13, MUTED, false));
+        c.addView(text("العنوان الوظيفي: " + safe(e.jobTitle), 13, MUTED, false));
+        c.addView(text("الدرجة/المرحلة: " + safe(e.grade) + " / " + safe(e.step), 13, MUTED, false));
+        c.addView(text("التحصيل: " + safe(e.education), 13, MUTED, false));
+        c.addView(text("تاريخ التعيين: " + shortDate(e.hireDate), 13, MUTED, false));
+        c.addView(space(10));
+        Button choose = outlineButton("اختيار للملاحظات");
+        choose.setOnClickListener(v -> {
+            selectedEmployee = e;
+            currentRole = "hr_manager";
+            Toast.makeText(this, "تم اختيار الموظف للملاحظات", Toast.LENGTH_SHORT).show();
+            showManagerNotes();
+        });
+        c.addView(choose);
+        return c;
+    }
+
+    private void showStatus() {
+        baseScreen();
+        LinearLayout header = card(18);
+        header.setPadding(dp(18), dp(18), dp(18), dp(18));
+        header.addView(text("حالة النظام", 22, TEXT, true));
+        header.addView(space(6));
+        header.addView(text("تشخيص أولي لنسخة Android Native", 13, MUTED, false));
+        root.addView(header);
+        root.addView(space(12));
+        LinearLayout box = card(18);
+        box.setPadding(dp(16), dp(16), dp(16), dp(16));
+        box.addView(text("الإصدار: " + APP_VERSION, 14, TEXT, true));
+        box.addView(space(6));
+        box.addView(text("رابط البيانات:\n" + DATA_URL, 12, MUTED, false));
+        box.addView(space(6));
+        box.addView(text("عدد الموظفين المحلي: " + employees.size(), 13, TEXT, false));
+        box.addView(text("دائم: " + permCount + " — عقود: " + contCount, 13, TEXT, false));
+        box.addView(text("نسخة البيانات: " + dataVersion, 13, MUTED, false));
+        box.addView(text("آخر تحديث: " + lastSync, 13, MUTED, false));
+        root.addView(box);
+        root.addView(space(12));
+        Button sync = primaryButton(isSyncing ? "جاري تحديث البيانات..." : "تحديث من GitHub");
+        sync.setEnabled(!isSyncing);
+        sync.setOnClickListener(v -> syncEmployees(true));
+        root.addView(sync);
+        root.addView(space(8));
+        Button back = outlineButton("الرجوع إلى الرئيسية");
+        back.setOnClickListener(v -> showHome());
+        root.addView(back);
     }
 
     private void showManagerNotes() {
@@ -143,7 +348,7 @@ public class MainActivity extends Activity {
         LinearLayout row = horizontal();
         row.addView(badge(roleLabel(), currentRole.equals("system_admin") ? PRIMARY : PURPLE));
         row.addView(spaceW(8));
-        row.addView(badge("R2.0.1 Native", GREEN));
+        row.addView(badge(APP_VERSION + " Native", GREEN));
         header.addView(row);
         root.addView(header);
 
@@ -199,10 +404,11 @@ public class MainActivity extends Activity {
         form.setPadding(dp(16), dp(16), dp(16), dp(16));
         form.addView(text("إرسال ملاحظة جديدة", 18, TEXT, true));
         form.addView(space(8));
-        form.addView(text("ابحث عن الموظف بكتابة حرفين أو أكثر، لا تظهر الأسماء عند الضغط فقط.", 12, MUTED, false));
+        form.addView(text("ابحث عن الموظف بكتابة حرفين أو أكثر. عند الاختيار تُجلب الشعبة الحالية من قاعدة البيانات.", 12, MUTED, false));
         form.addView(space(12));
 
         EditText search = editText("اكتب اسم الموظف للبحث...");
+        search.setSingleLine(true);
         form.addView(search);
         form.addView(space(8));
 
@@ -210,7 +416,7 @@ public class MainActivity extends Activity {
         results.setOrientation(LinearLayout.VERTICAL);
         form.addView(results);
 
-        TextView selected = text("لم يتم اختيار موظف", 13, MUTED, false);
+        TextView selected = text(selectedEmployee == null ? "لم يتم اختيار موظف" : "الموظف المختار: " + selectedEmployee.name + "\nالشعبة الحالية: " + selectedEmployee.branch, 13, selectedEmployee == null ? MUTED : TEXT, false);
         selected.setPadding(dp(4), dp(8), dp(4), dp(8));
         form.addView(selected);
 
@@ -240,10 +446,10 @@ public class MainActivity extends Activity {
                 Toast.makeText(this, "اختر الموظف أولاً", Toast.LENGTH_SHORT).show();
                 return;
             }
-            String text = note.getText().toString().trim();
+            String noteText = note.getText().toString().trim();
             notes.add(0, new ManagerNote("MN-" + System.currentTimeMillis(), currentMovement, selectedEmployee.name,
-                    selectedEmployee.branch, currentMovement.equals("ملاحظة") ? "" : "الشعبة الجديدة", text, "new", now()));
-            Toast.makeText(this, "تم إرسال الملاحظة محليًا في النموذج الأولي", Toast.LENGTH_SHORT).show();
+                    selectedEmployee.branch, currentMovement.equals("ملاحظة") ? "" : "الشعبة الجديدة", noteText, "new", now()));
+            Toast.makeText(this, "تم إرسال الملاحظة محليًا في R2.0.2", Toast.LENGTH_SHORT).show();
             selectedEmployee = null;
             showManagerNotes();
         });
@@ -259,7 +465,7 @@ public class MainActivity extends Activity {
         search.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String q = s.toString().trim();
+                String q = normalize(s.toString());
                 results.removeAllViews();
                 if (q.length() < 2) {
                     results.addView(helperLine("اكتب حرفين أو أكثر لعرض النتائج"));
@@ -267,23 +473,27 @@ public class MainActivity extends Activity {
                 }
                 int hits = 0;
                 for (Employee e : employees) {
-                    if (e.name.contains(q) || e.branch.contains(q) || e.id.contains(q)) {
+                    if (employeeMatches(e, q)) {
                         hits++;
-                        TextView item = resultItem(e.name + "\n" + e.branch + " — " + e.type);
-                        item.setOnClickListener(v -> {
-                            selectedEmployee = e;
-                            search.clearFocus();
-                            search.setText(e.name);
-                            search.setSelection(search.getText().length());
-                            results.removeAllViews();
-                            selected.setText("الموظف المختار: " + e.name + "\nالشعبة الحالية: " + e.branch);
-                            selected.setTextColor(TEXT);
-                        });
-                        results.addView(item);
-                        results.addView(space(6));
+                        if (hits <= 12) {
+                            TextView item = resultItem(e.name + "\n" + e.branch + " — " + e.typeLabel());
+                            item.setOnClickListener(v -> {
+                                selectedEmployee = e;
+                                hideKeyboard(search);
+                                search.clearFocus();
+                                search.setText(e.name);
+                                search.setSelection(search.getText().length());
+                                results.removeAllViews();
+                                selected.setText("الموظف المختار: " + e.name + "\nالشعبة الحالية: " + e.branch);
+                                selected.setTextColor(TEXT);
+                            });
+                            results.addView(item);
+                            results.addView(space(6));
+                        }
                     }
                 }
                 if (hits == 0) results.addView(helperLine("لا توجد نتائج مطابقة"));
+                if (hits > 12) results.addView(helperLine("تم عرض أول 12 نتيجة من أصل " + hits));
             }
             @Override public void afterTextChanged(Editable s) {}
         });
@@ -326,14 +536,7 @@ public class MainActivity extends Activity {
             notesContainer.addView(space(10));
             shown++;
         }
-        if (shown == 0) {
-            LinearLayout empty = card(18);
-            empty.setPadding(dp(18), dp(18), dp(18), dp(18));
-            TextView t = text("لا توجد ملاحظات ضمن هذا الفلتر", 14, MUTED, false);
-            t.setGravity(Gravity.CENTER);
-            empty.addView(t);
-            notesContainer.addView(empty);
-        }
+        if (shown == 0) notesContainer.addView(emptyCard("لا توجد ملاحظات ضمن هذا الفلتر"));
     }
 
     private boolean matchesFilter(ManagerNote n) {
@@ -375,6 +578,172 @@ public class MainActivity extends Activity {
         return c;
     }
 
+    private void syncEmployees(boolean returnToCurrentScreen) {
+        if (isSyncing) return;
+        isSyncing = true;
+        Toast.makeText(this, "جاري تحميل بيانات الموظفين من GitHub...", Toast.LENGTH_SHORT).show();
+        io.execute(() -> {
+            try {
+                String json = downloadText(DATA_URL);
+                ParseResult parsed = parseEmployeesJson(json);
+                saveCache(json);
+                ui.post(() -> {
+                    applyParseResult(parsed);
+                    isSyncing = false;
+                    Toast.makeText(this, "تم تحديث البيانات: " + employees.size() + " موظف", Toast.LENGTH_LONG).show();
+                    showHome();
+                });
+            } catch (Exception ex) {
+                ui.post(() -> {
+                    isSyncing = false;
+                    Toast.makeText(this, "فشل التحديث: " + ex.getMessage(), Toast.LENGTH_LONG).show();
+                    showStatus();
+                });
+            }
+        });
+    }
+
+    private String downloadText(String urlText) throws Exception {
+        HttpURLConnection conn = null;
+        try {
+            URL url = new URL(urlText);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(20000);
+            conn.setReadTimeout(30000);
+            conn.setRequestProperty("Accept", "application/json,text/plain,*/*");
+            int code = conn.getResponseCode();
+            InputStream in = code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream();
+            String text = readStream(in);
+            if (code < 200 || code >= 300) throw new Exception("HTTP " + code + " - " + text);
+            return text;
+        } finally {
+            if (conn != null) conn.disconnect();
+        }
+    }
+
+    private String readStream(InputStream in) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = br.readLine()) != null) sb.append(line).append('\n');
+        }
+        return sb.toString();
+    }
+
+    private void loadCachedEmployees() {
+        try {
+            File f = new File(getFilesDir(), CACHE_FILE);
+            if (!f.exists()) return;
+            byte[] bytes = new byte[(int) f.length()];
+            try (FileInputStream fis = new FileInputStream(f)) {
+                int read = fis.read(bytes);
+                if (read <= 0) return;
+            }
+            ParseResult parsed = parseEmployeesJson(new String(bytes, StandardCharsets.UTF_8));
+            applyParseResult(parsed);
+        } catch (Exception ignored) {}
+    }
+
+    private void saveCache(String json) throws Exception {
+        File f = new File(getFilesDir(), CACHE_FILE);
+        try (FileOutputStream fos = new FileOutputStream(f, false)) {
+            fos.write(json.getBytes(StandardCharsets.UTF_8));
+        }
+    }
+
+    private ParseResult parseEmployeesJson(String raw) throws Exception {
+        JSONObject obj = new JSONObject(raw);
+        ParseResult out = new ParseResult();
+        JSONObject meta = obj.optJSONObject("meta");
+        if (meta != null) {
+            out.version = meta.optString("version", "GitHub data");
+            out.updatedAt = meta.optString("updatedAt", "");
+            JSONObject counts = meta.optJSONObject("counts");
+            if (counts != null) {
+                out.permCount = counts.optInt("perm", 0);
+                out.contCount = counts.optInt("cont", 0);
+            }
+        }
+        readEmployeeArray(obj.optJSONArray("perm"), out.employees, "دائم");
+        readEmployeeArray(obj.optJSONArray("cont"), out.employees, "عقد");
+        if (out.permCount == 0 || out.contCount == 0) {
+            int p = 0, c = 0;
+            for (Employee e : out.employees) {
+                if ("عقد".equals(e.typeLabel())) c++; else p++;
+            }
+            out.permCount = p;
+            out.contCount = c;
+        }
+        if (out.employees.isEmpty()) throw new Exception("لم يتم العثور على بيانات الموظفين داخل JSON");
+        out.lastSync = now();
+        return out;
+    }
+
+    private void readEmployeeArray(JSONArray arr, List<Employee> target, String fallbackType) {
+        if (arr == null) return;
+        for (int i = 0; i < arr.length(); i++) {
+            JSONObject o = arr.optJSONObject(i);
+            if (o == null) continue;
+            String id = first(o, "employeeNo", "id", "integrationId", "sourceEmployeeId");
+            String name = first(o, "name", "fullName", "employeeName");
+            if (name.length() == 0) continue;
+            String division = first(o, "division", "branch", "department");
+            String status = first(o, "employmentStatus", "status", "type");
+            String type = first(o, "type", "employmentStatus");
+            if (type.length() == 0) type = fallbackType;
+            String jobTitle = first(o, "jobTitle", "title");
+            String grade = first(o, "grade");
+            String step = first(o, "step");
+            String salary = first(o, "salary");
+            String education = first(o, "education");
+            String mother = first(o, "motherName");
+            String identity = first(o, "identityNo");
+            String hireDate = first(o, "hireDate");
+            target.add(new Employee(id, name, division, status.length() == 0 ? type : status, jobTitle, grade, step, salary, education, mother, identity, hireDate));
+        }
+    }
+
+    private String first(JSONObject o, String... keys) {
+        for (String k : keys) {
+            Object v = o.opt(k);
+            if (v != null && !JSONObject.NULL.equals(v)) {
+                String s = String.valueOf(v).trim();
+                if (s.length() > 0) return s;
+            }
+        }
+        return "";
+    }
+
+    private void applyParseResult(ParseResult parsed) {
+        employees.clear();
+        employees.addAll(parsed.employees);
+        permCount = parsed.permCount;
+        contCount = parsed.contCount;
+        dataVersion = parsed.version;
+        lastSync = parsed.updatedAt.length() > 0 ? parsed.updatedAt : parsed.lastSync;
+    }
+
+    private boolean employeeMatches(Employee e, String normalizedQuery) {
+        return normalize(e.name).contains(normalizedQuery)
+                || normalize(e.id).contains(normalizedQuery)
+                || normalize(e.branch).contains(normalizedQuery)
+                || normalize(e.jobTitle).contains(normalizedQuery)
+                || normalize(e.motherName).contains(normalizedQuery);
+    }
+
+    private String normalize(String s) {
+        if (s == null) return "";
+        return s.trim()
+                .replace('أ', 'ا')
+                .replace('إ', 'ا')
+                .replace('آ', 'ا')
+                .replace('ى', 'ي')
+                .replace('ة', 'ه')
+                .replace("ـ", "")
+                .toLowerCase(Locale.ROOT);
+    }
+
     private Button roleButton(String label, String role) {
         Button b = pillButton(label, currentRole.equals(role) ? PRIMARY : Color.WHITE, currentRole.equals(role) ? Color.WHITE : TEXT);
         b.setOnClickListener(v -> {
@@ -395,9 +764,10 @@ public class MainActivity extends Activity {
         c.addView(text(title, 17, TEXT, true));
         c.addView(space(5));
         c.addView(text(desc, 12, MUTED, false));
-        if ("ملاحظات المدير".equals(title)) {
-            c.setOnClickListener(v -> showManagerNotes());
-        }
+        if ("ملاحظات المدير".equals(title)) c.setOnClickListener(v -> showManagerNotes());
+        if ("القائمة".equals(title)) c.setOnClickListener(v -> showEmployeeDirectory());
+        if ("حالة النظام".equals(title)) c.setOnClickListener(v -> showStatus());
+        if ("التقارير".equals(title)) c.setOnClickListener(v -> Toast.makeText(this, "التقارير ستضاف في R2.0.5", Toast.LENGTH_SHORT).show());
         return c;
     }
 
@@ -428,6 +798,15 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         l.setLayoutParams(lp);
         return l;
+    }
+
+    private LinearLayout emptyCard(String message) {
+        LinearLayout empty = card(18);
+        empty.setPadding(dp(18), dp(18), dp(18), dp(18));
+        TextView t = text(message, 14, MUTED, false);
+        t.setGravity(Gravity.CENTER);
+        empty.addView(t);
+        return empty;
     }
 
     private TextView text(String s, int sp, int color, boolean bold) {
@@ -469,17 +848,9 @@ public class MainActivity extends Activity {
         return t;
     }
 
-    private Button primaryButton(String s) {
-        return pillButton(s, PRIMARY, Color.WHITE);
-    }
-
-    private Button outlineButton(String s) {
-        return pillButton(s, Color.WHITE, PRIMARY);
-    }
-
-    private Button chipButton(String s, boolean active) {
-        return pillButton(s, active ? PRIMARY : Color.WHITE, active ? Color.WHITE : TEXT);
-    }
+    private Button primaryButton(String s) { return pillButton(s, PRIMARY, Color.WHITE); }
+    private Button outlineButton(String s) { return pillButton(s, Color.WHITE, PRIMARY); }
+    private Button chipButton(String s, boolean active) { return pillButton(s, active ? PRIMARY : Color.WHITE, active ? Color.WHITE : TEXT); }
 
     private Button pillButton(String s, int bg, int fg) {
         Button b = new Button(this);
@@ -544,18 +915,30 @@ public class MainActivity extends Activity {
         return GREEN;
     }
 
-    private String roleLabel() {
-        return currentRole.equals("system_admin") ? "مسؤول النظام" : "مدير الموارد البشرية";
-    }
-
+    private String roleLabel() { return currentRole.equals("system_admin") ? "مسؤول النظام" : "مدير الموارد البشرية"; }
     private String safe(String v) { return v == null || v.length() == 0 ? "-" : v; }
+    private String shortDate(String v) { return v == null || v.length() < 10 ? safe(v) : v.substring(0, 10); }
+
+    private void hideKeyboard(View v) {
+        try {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        } catch (Exception ignored) {}
+    }
 
     private String now() {
         return new SimpleDateFormat("yyyy/MM/dd - hh:mm a", new Locale("ar", "IQ")).format(new Date());
     }
 
-    private int dp(int v) {
-        return (int) (v * getResources().getDisplayMetrics().density + 0.5f);
+    private int dp(int v) { return (int) (v * getResources().getDisplayMetrics().density + 0.5f); }
+
+    static class ParseResult {
+        final List<Employee> employees = new ArrayList<>();
+        String version = "GitHub data";
+        String updatedAt = "";
+        String lastSync = "";
+        int permCount = 0;
+        int contCount = 0;
     }
 
     static class Employee {
@@ -563,8 +946,32 @@ public class MainActivity extends Activity {
         final String name;
         final String branch;
         final String type;
-        Employee(String id, String name, String branch, String type) {
-            this.id = id; this.name = name; this.branch = branch; this.type = type;
+        final String jobTitle;
+        final String grade;
+        final String step;
+        final String salary;
+        final String education;
+        final String motherName;
+        final String identityNo;
+        final String hireDate;
+        Employee(String id, String name, String branch, String type, String jobTitle, String grade, String step, String salary, String education, String motherName, String identityNo, String hireDate) {
+            this.id = id == null ? "" : id;
+            this.name = name == null ? "" : name;
+            this.branch = branch == null ? "" : branch;
+            this.type = type == null ? "" : type;
+            this.jobTitle = jobTitle == null ? "" : jobTitle;
+            this.grade = grade == null ? "" : grade;
+            this.step = step == null ? "" : step;
+            this.salary = salary == null ? "" : salary;
+            this.education = education == null ? "" : education;
+            this.motherName = motherName == null ? "" : motherName;
+            this.identityNo = identityNo == null ? "" : identityNo;
+            this.hireDate = hireDate == null ? "" : hireDate;
+        }
+        String typeLabel() {
+            String t = type == null ? "" : type.toLowerCase(Locale.ROOT);
+            if (t.contains("cont") || type.contains("عقد")) return "عقد";
+            return "دائم";
         }
     }
 
