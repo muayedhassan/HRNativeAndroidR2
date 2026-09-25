@@ -394,8 +394,7 @@ public class MainActivity extends Activity {
     }
 
     private String infoRow(String label, String value) {
-        return label + ": " + safe(value) + "
-";
+        return label + ": " + safe(value) + "\n";
     }
 
     private String formatSalary(String value) {
