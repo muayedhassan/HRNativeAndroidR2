@@ -46,7 +46,7 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "R2.5.0";
+    private static final String APP_VERSION = "R2.6.0";
     private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
     private static final String CACHE_FILE = "employees_cache_r2.json";
     private static final String NOTES_CACHE_FILE = "manager_notes_cache_r2.json";
@@ -246,25 +246,188 @@ public class MainActivity extends Activity {
     private void showHome() {
         baseScreen();
 
-        root.addView(commandHero());
-
-        root.addView(space(9));
-        root.addView(webModeTabs());
-
-        root.addView(space(9));
-        root.addView(commandStatusPanel());
-
-        root.addView(space(11));
-        root.addView(sectionTitle("مركز العمليات"));
-        root.addView(commandModuleGrid());
+        root.addView(webReplicaHeader());
+        root.addView(space(8));
+        root.addView(webReplicaModeTabs());
+        root.addView(space(8));
+        root.addView(webReplicaStatsRow());
+        root.addView(space(8));
+        root.addView(webReplicaSubTabs());
+        root.addView(space(8));
+        root.addView(webReplicaSearchWorkspace());
 
         root.addView(space(10));
-        root.addView(homeActionBar());
-
-        root.addView(space(10));
-        TextView footer = text("R2.5.0 Premium Compact: كروت أصغر، تدرجات، ظلال، وأحجام خط أكثر هدوءًا.", 11, MUTED, false);
+        TextView footer = text("R2.6.0 Web Replica Native: السجل والبحث أصبحا في الشاشة الأولى مثل نسخة الويب.", 11, MUTED, false);
         footer.setGravity(Gravity.CENTER);
         root.addView(footer);
+    }
+
+    private LinearLayout webReplicaHeader() {
+        LinearLayout header = card(18);
+        header.setPadding(dp(12), dp(12), dp(12), dp(12));
+        header.setBackground(gradient(Color.rgb(8, 17, 48), Color.rgb(21, 32, 88), 18, Color.rgb(58, 72, 135)));
+
+        LinearLayout row = horizontal();
+        row.addView(iconView(R.drawable.ic_hr_people, GOLD, Color.rgb(31, 43, 104), dp(44)));
+        row.addView(spaceW(9));
+        LinearLayout titleBox = new LinearLayout(this);
+        titleBox.setOrientation(LinearLayout.VERTICAL);
+        titleBox.addView(text("سجل الموظفين", 20, Color.WHITE, true));
+        titleBox.addView(space(2));
+        titleBox.addView(text("مديرية زراعة صلاح الدين · " + APP_VERSION, 10, Color.rgb(190, 205, 240), false));
+        row.addView(titleBox, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        row.addView(lightBadge(roleLabel(), currentRole.equals(ROLE_ADMIN) ? GOLD : PURPLE));
+        header.addView(row);
+
+        header.addView(space(8));
+        TextView status = text("الواجهة الآن تبدأ من السجل والبحث مباشرة، بنفس منطق نسخة الويب وليس لوحة اختصارات فقط.", 10, Color.rgb(207, 226, 244), false);
+        header.addView(status);
+        return header;
+    }
+
+    private LinearLayout webReplicaModeTabs() {
+        LinearLayout box = card(14);
+        box.setPadding(dp(7), dp(7), dp(7), dp(7));
+        box.setBackground(gradient(Color.rgb(12, 22, 58), Color.rgb(8, 16, 44), 14, BORDER));
+
+        LinearLayout tabs = horizontal();
+        Button perm = chipButton("الدائميون " + permCount, "دائم".equals(employeeDirectoryFilter));
+        perm.setOnClickListener(v -> {
+            employeeDirectoryFilter = "دائم";
+            showHome();
+        });
+        tabs.addView(perm, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        tabs.addView(spaceW(6));
+
+        Button cont = chipButton("العقود " + contCount, "عقد".equals(employeeDirectoryFilter));
+        cont.setOnClickListener(v -> {
+            employeeDirectoryFilter = "عقد";
+            showHome();
+        });
+        tabs.addView(cont, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        tabs.addView(spaceW(6));
+
+        Button all = chipButton("الكل " + employees.size(), "الكل".equals(employeeDirectoryFilter));
+        all.setOnClickListener(v -> {
+            employeeDirectoryFilter = "الكل";
+            showHome();
+        });
+        tabs.addView(all, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        box.addView(tabs);
+        return box;
+    }
+
+    private LinearLayout webReplicaStatsRow() {
+        LinearLayout row = horizontal();
+        row.addView(compactPill("الموظفون", String.valueOf(employees.size()), GOLD));
+        row.addView(spaceW(6));
+        row.addView(compactPill("النطاق", String.valueOf(filteredEmployeeCount()), PRIMARY));
+        row.addView(spaceW(6));
+        row.addView(compactPill("ملاحظات", String.valueOf(notes.size()), PURPLE));
+        return row;
+    }
+
+    private LinearLayout webReplicaSubTabs() {
+        LinearLayout box = card(14);
+        box.setPadding(dp(8), dp(8), dp(8), dp(8));
+        box.setBackground(gradient(Color.rgb(12, 22, 58), Color.rgb(8, 16, 44), 14, BORDER));
+
+        HorizontalScrollView scroll = new HorizontalScrollView(this);
+        scroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout tabs = chipsBar();
+
+        Button list = chipButton("القائمة", true);
+        list.setOnClickListener(v -> showHome());
+        tabs.addView(list);
+        tabs.addView(spaceW(6));
+
+        Button notesButton = chipButton("ملاحظات المدير", false);
+        notesButton.setOnClickListener(v -> showManagerNotes());
+        tabs.addView(notesButton);
+        tabs.addView(spaceW(6));
+
+        Button admin = chipButton("الإدارة", false);
+        admin.setOnClickListener(v -> showAdminDashboard());
+        tabs.addView(admin);
+        tabs.addView(spaceW(6));
+
+        Button updates = chipButton("التحديثات", false);
+        updates.setOnClickListener(v -> showUpdateCenter());
+        tabs.addView(updates);
+        tabs.addView(spaceW(6));
+
+        Button system = chipButton("النظام", false);
+        system.setOnClickListener(v -> showStatus());
+        tabs.addView(system);
+
+        scroll.addView(tabs);
+        box.addView(scroll);
+        return box;
+    }
+
+    private LinearLayout webReplicaSearchWorkspace() {
+        LinearLayout box = card(16);
+        box.setPadding(dp(10), dp(10), dp(10), dp(10));
+        box.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(8, 17, 48), 16, BORDER));
+
+        LinearLayout title = horizontal();
+        title.addView(iconView(R.drawable.ic_hr_search, GOLD, Color.rgb(22, 34, 83), dp(36)));
+        title.addView(spaceW(8));
+        LinearLayout titleText = new LinearLayout(this);
+        titleText.setOrientation(LinearLayout.VERTICAL);
+        titleText.addView(text("البحث الإداري السريع", 15, TEXT, true));
+        titleText.addView(text("القائمة تظهر مباشرة، والبحث يصفّي النتائج مثل نسخة الويب.", 9, MUTED, false));
+        title.addView(titleText, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        box.addView(title);
+        box.addView(space(8));
+
+        EditText search = editText("ابحث بالاسم، الرقم الوظيفي، الشعبة، أو اسم الأم...");
+        search.setSingleLine(true);
+        box.addView(search);
+        box.addView(space(7));
+        TextView status = text("يعرض أول الموظفين ضمن النطاق الحالي", 10, MUTED, false);
+        box.addView(status);
+        box.addView(space(8));
+
+        LinearLayout results = new LinearLayout(this);
+        results.setOrientation(LinearLayout.VERTICAL);
+        box.addView(results);
+        renderHomeEmployeeResults("", results, status);
+
+        search.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                renderHomeEmployeeResults(s.toString(), results, status);
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+        return box;
+    }
+
+    private void renderHomeEmployeeResults(String query, LinearLayout container, TextView status) {
+        container.removeAllViews();
+        String q = normalize(query);
+        int shown = 0;
+        int matched = 0;
+        for (Employee e : employees) {
+            boolean match = q.length() < 2 || employeeMatches(e, q);
+            if (employeePassesDirectoryFilter(e) && match) {
+                matched++;
+                if (shown < 12) {
+                    container.addView(employeeCard(e));
+                    container.addView(space(6));
+                    shown++;
+                }
+            }
+        }
+        if (matched == 0) {
+            container.addView(emptyCard("لا توجد نتائج مطابقة ضمن النطاق الحالي"));
+        }
+        if (q.length() < 2) {
+            status.setText("النطاق: " + employeeDirectoryFilter + " · عرض أول " + shown + " من " + filteredEmployeeCount());
+        } else {
+            status.setText("نتائج البحث: " + matched + (matched > 12 ? " · عُرضت أول 12 نتيجة" : ""));
+        }
     }
 
     private LinearLayout commandHero() {
@@ -1133,9 +1296,9 @@ public class MainActivity extends Activity {
         root.addView(space(12));
         LinearLayout release = card(18);
         release.setPadding(dp(16), dp(14), dp(16), dp(14));
-        release.addView(text("محتوى R2.5.0", 18, TEXT, true));
+        release.addView(text("محتوى R2.6.0", 18, TEXT, true));
         release.addView(space(8));
-        release.addView(text("• تحويل الواجهة إلى Premium Compact\n• كروت أصغر وأكثر كثافة وتنظيمًا\n• تدرجات وظلال Native للكروت والهيدرات\n• تحسين أحجام الخطوط والشارات والأزرار\n• تصغير كروت نتائج الموظفين مع إبقاء الوظائف\n• تحسين فقاعات الأيقونات حسب الحجم\n• استمرار خطوط SF Sultan وYa Modern Pro وStencil", 13, TEXT, false));
+        release.addView(text("• تحويل الشاشة الرئيسية إلى تخطيط قريب من نسخة الويب\n• فتح التطبيق مباشرة على السجل والبحث بدل لوحة اختصارات فقط\n• تبويبات رئيسية: الدائميون، العقود، الكل\n• تبويبات فرعية: القائمة، ملاحظات المدير، الإدارة، التحديثات، النظام\n• شريط إحصاءات مباشر أعلى القائمة\n• عرض أول الموظفين فورًا بدون انتظار البحث\n• بحث مباشر يصفّي النتائج داخل نفس الشاشة", 13, TEXT, false));
         root.addView(release);
 
         root.addView(space(12));
@@ -1319,7 +1482,7 @@ public class MainActivity extends Activity {
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
         box.addView(text("سجل الملاحظات", 18, TEXT, true));
         box.addView(space(4));
-        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.5.0.", 11, MUTED, false));
+        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.6.0.", 11, MUTED, false));
         box.addView(space(8));
 
         HorizontalScrollView hsv = new HorizontalScrollView(this);
