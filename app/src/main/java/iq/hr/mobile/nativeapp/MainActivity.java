@@ -45,7 +45,7 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "R2.1.0";
+    private static final String APP_VERSION = "R2.2.0";
     private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
     private static final String CACHE_FILE = "employees_cache_r2.json";
     private static final String NOTES_CACHE_FILE = "manager_notes_cache_r2.json";
@@ -85,6 +85,7 @@ public class MainActivity extends Activity {
     private Typeface titleTypeface;
     private Typeface bodyTypeface;
     private Typeface numberTypeface;
+    private String employeeDirectoryFilter = "الكل";
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final ExecutorService io = Executors.newSingleThreadExecutor();
 
@@ -112,9 +113,13 @@ public class MainActivity extends Activity {
             titleTypeface = Typeface.DEFAULT_BOLD;
         }
         try {
-            bodyTypeface = Typeface.createFromAsset(getAssets(), "fonts/ZainMobile.ttf");
+            bodyTypeface = Typeface.createFromAsset(getAssets(), "fonts/SFSultan-Black.ttf");
         } catch (Exception ignored) {
-            bodyTypeface = Typeface.DEFAULT;
+            try {
+                bodyTypeface = Typeface.createFromAsset(getAssets(), "fonts/ZainMobile.ttf");
+            } catch (Exception ignored2) {
+                bodyTypeface = Typeface.DEFAULT;
+            }
         }
         try {
             numberTypeface = Typeface.createFromAsset(getAssets(), "fonts/Stencil.ttf");
@@ -243,6 +248,9 @@ public class MainActivity extends Activity {
         LinearLayout hero = executiveHeader();
         root.addView(hero);
 
+        root.addView(space(12));
+        root.addView(webModeTabs());
+
         root.addView(space(14));
         root.addView(sectionTitle("لوحة التحكم التنفيذية"));
         root.addView(executiveStatsPanel());
@@ -267,7 +275,10 @@ public class MainActivity extends Activity {
 
         root.addView(space(16));
         Button listBtn = primaryButton("فتح قائمة الموظفين الآن");
-        listBtn.setOnClickListener(v -> showEmployeeDirectory());
+        listBtn.setOnClickListener(v -> {
+            employeeDirectoryFilter = "الكل";
+            showEmployeeDirectory();
+        });
         root.addView(listBtn);
         root.addView(space(10));
         Button syncBtn = outlineButton(isSyncing ? "جاري تحديث البيانات..." : "تحديث بيانات الموظفين من GitHub");
@@ -276,9 +287,36 @@ public class MainActivity extends Activity {
         root.addView(syncBtn);
 
         root.addView(space(12));
-        TextView footer = text("R2.1.0 يجمع ثلاث ترقيات: واجهة احترافية، لوحة مسؤول، ومركز تحديث داخل التطبيق.", 12, MUTED, false);
+        TextView footer = text("R2.2.0 يقرّب Native من نسخة الويب: تبويبات رئيسية، فلاتر موظفين، وخط SF Sultan.", 12, MUTED, false);
         footer.setGravity(Gravity.CENTER);
         root.addView(footer);
+    }
+
+    private LinearLayout webModeTabs() {
+        LinearLayout box = card(18);
+        box.setPadding(dp(12), dp(12), dp(12), dp(12));
+        box.addView(text("نطاق السجل مثل نسخة الويب", 17, TEXT, true));
+        box.addView(space(8));
+        LinearLayout tabs = horizontal();
+        Button perm = primaryButton("الدائميون");
+        perm.setOnClickListener(v -> {
+            employeeDirectoryFilter = "دائم";
+            showEmployeeDirectory();
+        });
+        tabs.addView(perm, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        tabs.addView(spaceW(8));
+        Button cont = outlineButton("العقود");
+        cont.setOnClickListener(v -> {
+            employeeDirectoryFilter = "عقد";
+            showEmployeeDirectory();
+        });
+        tabs.addView(cont, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        tabs.addView(spaceW(8));
+        Button admin = outlineButton("الإدارة");
+        admin.setOnClickListener(v -> showAdminDashboard());
+        tabs.addView(admin, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        box.addView(tabs);
+        return box;
     }
 
     private LinearLayout executiveHeader() {
@@ -408,10 +446,10 @@ public class MainActivity extends Activity {
     private void showEmployeeDirectory() {
         baseScreen();
 
-        LinearLayout header = premiumHeader("القائمة الرئيسية للموظفين", "بحث فعلي من بيانات GitHub مع بطاقة موظف تفصيلية ونسخة محلية احتياطية");
+        LinearLayout header = premiumHeader("سجل الموظفين", "بحث Native قريب من نسخة الويب مع فلاتر الدائميين والعقود");
         header.addView(space(12));
         LinearLayout badges = horizontal();
-        badges.addView(badge(employees.size() + " موظف", PRIMARY));
+        badges.addView(badge(filteredEmployeeCount() + " ضمن الفلتر", PRIMARY));
         badges.addView(spaceW(8));
         badges.addView(badge("دائم " + permCount, GREEN));
         badges.addView(spaceW(8));
@@ -422,9 +460,25 @@ public class MainActivity extends Activity {
         root.addView(space(12));
         LinearLayout searchCard = card(18);
         searchCard.setPadding(dp(16), dp(16), dp(16), dp(16));
-        searchCard.addView(text("بحث الموظفين", 18, TEXT, true));
+        searchCard.addView(text("البحث الإداري السريع", 18, TEXT, true));
         searchCard.addView(space(6));
-        searchCard.addView(text("اكتب حرفين أو أكثر من الاسم أو الرقم الوظيفي أو الشعبة. لا يتم عرض كل الأسماء عند الضغط فقط.", 12, MUTED, false));
+        searchCard.addView(text("النطاق الحالي: " + employeeDirectoryFilter + "، اكتب حرفين أو أكثر من الاسم أو الرقم الوظيفي أو الشعبة.", 12, MUTED, false));
+        searchCard.addView(space(10));
+        HorizontalScrollView filterScroll = new HorizontalScrollView(this);
+        filterScroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout filterChips = chipsBar();
+        String[] employeeFilters = {"الكل", "دائم", "عقد"};
+        for (String f : employeeFilters) {
+            Button b = chipButton(f, f.equals(employeeDirectoryFilter));
+            b.setOnClickListener(v -> {
+                employeeDirectoryFilter = ((Button) v).getText().toString();
+                showEmployeeDirectory();
+            });
+            filterChips.addView(b);
+            filterChips.addView(spaceW(7));
+        }
+        filterScroll.addView(filterChips);
+        searchCard.addView(filterScroll);
         searchCard.addView(space(10));
         EditText search = editText("اكتب اسم الموظف أو الرقم الوظيفي...");
         search.setSingleLine(true);
@@ -443,7 +497,7 @@ public class MainActivity extends Activity {
         search.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus && search.getText().toString().trim().length() < 2) {
                 results.removeAllViews();
-                results.addView(emptyCard("اكتب حرفين أو أكثر حتى تظهر النتائج"));
+                results.addView(emptyCard("اكتب حرفين أو أكثر حتى تظهر النتائج ضمن نطاق " + employeeDirectoryFilter));
                 status.setText("لا يتم عرض جميع الأسماء تلقائيًا");
             }
         });
@@ -471,14 +525,14 @@ public class MainActivity extends Activity {
         container.removeAllViews();
         String q = normalize(query);
         if (q.length() < 2) {
-            container.addView(emptyCard("اكتب حرفين أو أكثر للبحث في " + employees.size() + " موظف"));
-            status.setText("البيانات الجاهزة: " + employees.size() + " موظف");
+            container.addView(emptyCard("اكتب حرفين أو أكثر للبحث في " + filteredEmployeeCount() + " موظف ضمن نطاق " + employeeDirectoryFilter));
+            status.setText("النطاق الجاهز: " + employeeDirectoryFilter + " — " + filteredEmployeeCount() + " موظف");
             return;
         }
         int shown = 0;
         int matched = 0;
         for (Employee e : employees) {
-            if (employeeMatches(e, q)) {
+            if (employeePassesDirectoryFilter(e) && employeeMatches(e, q)) {
                 matched++;
                 if (shown < 50) {
                     container.addView(employeeCard(e));
@@ -490,7 +544,21 @@ public class MainActivity extends Activity {
         if (matched == 0) {
             container.addView(emptyCard("لا توجد نتائج مطابقة"));
         }
-        status.setText("النتائج: " + matched + (matched > 50 ? " — عُرضت أول 50 نتيجة فقط" : ""));
+        status.setText("النتائج ضمن " + employeeDirectoryFilter + ": " + matched + (matched > 50 ? " — عُرضت أول 50 نتيجة فقط" : ""));
+    }
+
+    private boolean employeePassesDirectoryFilter(Employee e) {
+        if ("دائم".equals(employeeDirectoryFilter)) return "دائم".equals(e.typeLabel());
+        if ("عقد".equals(employeeDirectoryFilter)) return "عقد".equals(e.typeLabel());
+        return true;
+    }
+
+    private int filteredEmployeeCount() {
+        int count = 0;
+        for (Employee e : employees) {
+            if (employeePassesDirectoryFilter(e)) count++;
+        }
+        return count;
     }
 
     private LinearLayout employeeCard(Employee e) {
@@ -735,9 +803,9 @@ public class MainActivity extends Activity {
         root.addView(space(12));
         LinearLayout release = card(18);
         release.setPadding(dp(16), dp(14), dp(16), dp(14));
-        release.addView(text("محتوى R2.1.0", 18, TEXT, true));
+        release.addView(text("محتوى R2.2.0", 18, TEXT, true));
         release.addView(space(8));
-        release.addView(text("• واجهة رئيسية تنفيذية جديدة\n• لوحة مسؤول النظام\n• مركز تحديث داخل التطبيق\n• خطوط Native من نسخة الويب\n• تحسين ألوان وهوية التطبيق", 13, TEXT, false));
+        release.addView(text("• إضافة خط SF Sultan للنصوص العربية\n• تبويبات رئيسية مثل نسخة الويب: الدائميين، العقود، الإدارة\n• فلاتر قائمة الموظفين حسب نوع التوظيف\n• استمرار لوحة المسؤول ومركز التحديث\n• تقريب أكبر بين Native وواجهة الويب", 13, TEXT, false));
         root.addView(release);
 
         root.addView(space(12));
@@ -921,7 +989,7 @@ public class MainActivity extends Activity {
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
         box.addView(text("سجل الملاحظات", 18, TEXT, true));
         box.addView(space(4));
-        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.1.0.", 11, MUTED, false));
+        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.2.0.", 11, MUTED, false));
         box.addView(space(8));
 
         HorizontalScrollView hsv = new HorizontalScrollView(this);
@@ -1244,7 +1312,10 @@ public class MainActivity extends Activity {
         c.addView(space(5));
         c.addView(text(desc, 12, MUTED, false));
         if ("ملاحظات المدير".equals(title)) c.setOnClickListener(v -> showManagerNotes());
-        if ("القائمة".equals(title)) c.setOnClickListener(v -> showEmployeeDirectory());
+        if ("القائمة".equals(title)) c.setOnClickListener(v -> {
+            employeeDirectoryFilter = "الكل";
+            showEmployeeDirectory();
+        });
         if ("حالة النظام".equals(title)) c.setOnClickListener(v -> showStatus());
         if ("لوحة المسؤول".equals(title)) c.setOnClickListener(v -> showAdminDashboard());
         if ("مركز التحديث".equals(title)) c.setOnClickListener(v -> showUpdateCenter());
