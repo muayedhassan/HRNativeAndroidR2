@@ -44,9 +44,10 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "R2.0.4";
+    private static final String APP_VERSION = "R2.0.5";
     private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
     private static final String CACHE_FILE = "employees_cache_r2.json";
+    private static final String NOTES_CACHE_FILE = "manager_notes_cache_r2.json";
 
     private static final int BG = Color.rgb(245, 247, 251);
     private static final int CARD = Color.WHITE;
@@ -81,7 +82,8 @@ public class MainActivity extends Activity {
         getWindow().setStatusBarColor(BG);
         seedFallbackData();
         loadCachedEmployees();
-        seedNotes();
+        loadCachedNotes();
+        if (notes.isEmpty()) seedNotes();
         showHome();
     }
 
@@ -124,7 +126,7 @@ public class MainActivity extends Activity {
         LinearLayout hero = card(18);
         hero.setPadding(dp(18), dp(18), dp(18), dp(18));
         TextView title = text("نظام الموارد البشرية", 24, TEXT, true);
-        TextView subtitle = text("نسخة Android Native " + APP_VERSION + " — قاعدة بيانات وبطاقة موظف فعلية", 13, MUTED, false);
+        TextView subtitle = text("نسخة Android Native " + APP_VERSION + " — حفظ محلي للملاحظات واختبار تحديث موقّع", 13, MUTED, false);
         hero.addView(title);
         hero.addView(space(6));
         hero.addView(subtitle);
@@ -166,7 +168,7 @@ public class MainActivity extends Activity {
         root.addView(syncBtn);
 
         root.addView(space(12));
-        TextView footer = text("R2.0.4 نسخة موقّعة بتوقيع ثابت، مع استمرار قراءة بيانات GitHub وبطاقة الموظف.", 12, MUTED, false);
+        TextView footer = text("R2.0.5 تحديث فعلي صغير: حفظ ملاحظات المدير محليًا واختبار التثبيت فوق النسخة السابقة.", 12, MUTED, false);
         footer.setGravity(Gravity.CENTER);
         root.addView(footer);
     }
@@ -555,7 +557,8 @@ public class MainActivity extends Activity {
             String noteText = note.getText().toString().trim();
             notes.add(0, new ManagerNote("MN-" + System.currentTimeMillis(), currentMovement, selectedEmployee.name,
                     selectedEmployee.branch, currentMovement.equals("ملاحظة") ? "" : "الشعبة الجديدة", noteText, "new", now()));
-            Toast.makeText(this, "تم إرسال الملاحظة محليًا في R2.0.4", Toast.LENGTH_SHORT).show();
+            saveNotesCache();
+            Toast.makeText(this, "تم حفظ الملاحظة محليًا", Toast.LENGTH_SHORT).show();
             selectedEmployee = null;
             showManagerNotes();
         });
@@ -611,6 +614,8 @@ public class MainActivity extends Activity {
         LinearLayout box = card(18);
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
         box.addView(text("سجل الملاحظات", 18, TEXT, true));
+        box.addView(space(4));
+        box.addView(text("يتم حفظ الملاحظات وحالة المراجعة محليًا في هذه النسخة حتى بعد إغلاق التطبيق.", 11, MUTED, false));
         box.addView(space(8));
 
         HorizontalScrollView hsv = new HorizontalScrollView(this);
@@ -676,12 +681,64 @@ public class MainActivity extends Activity {
             Button reviewed = primaryButton("تمت المراجعة");
             reviewed.setOnClickListener(v -> {
                 n.status = "reviewed";
-                Toast.makeText(this, "تمت المراجعة ونقلت إلى الأرشيف", Toast.LENGTH_SHORT).show();
+                saveNotesCache();
+                Toast.makeText(this, "تمت المراجعة وحُفظت محليًا", Toast.LENGTH_SHORT).show();
                 showManagerNotes();
             });
             c.addView(reviewed);
         }
         return c;
+    }
+
+
+    private void loadCachedNotes() {
+        try {
+            File f = new File(getFilesDir(), NOTES_CACHE_FILE);
+            if (!f.exists()) return;
+            byte[] bytes = new byte[(int) f.length()];
+            try (FileInputStream fis = new FileInputStream(f)) {
+                int read = fis.read(bytes);
+                if (read <= 0) return;
+            }
+            JSONArray arr = new JSONArray(new String(bytes, StandardCharsets.UTF_8));
+            notes.clear();
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.optJSONObject(i);
+                if (o == null) continue;
+                String id = o.optString("id", "MN-" + i);
+                String type = o.optString("type", "ملاحظة");
+                String employee = o.optString("employee", "");
+                if (employee.length() == 0) continue;
+                String fromBranch = o.optString("fromBranch", "");
+                String toBranch = o.optString("toBranch", "");
+                String note = o.optString("note", "");
+                String status = o.optString("status", "new");
+                String date = o.optString("date", now());
+                notes.add(new ManagerNote(id, type, employee, fromBranch, toBranch, note, status, date));
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private void saveNotesCache() {
+        try {
+            JSONArray arr = new JSONArray();
+            for (ManagerNote n : notes) {
+                JSONObject o = new JSONObject();
+                o.put("id", n.id);
+                o.put("type", n.type);
+                o.put("employee", n.employee);
+                o.put("fromBranch", n.fromBranch);
+                o.put("toBranch", n.toBranch);
+                o.put("note", n.note);
+                o.put("status", n.status);
+                o.put("date", n.date);
+                arr.put(o);
+            }
+            File f = new File(getFilesDir(), NOTES_CACHE_FILE);
+            try (FileOutputStream fos = new FileOutputStream(f, false)) {
+                fos.write(arr.toString().getBytes(StandardCharsets.UTF_8));
+            }
+        } catch (Exception ignored) {}
     }
 
     private void syncEmployees(boolean returnToCurrentScreen) {
