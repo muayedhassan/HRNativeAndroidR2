@@ -46,7 +46,7 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "R2.4.0";
+    private static final String APP_VERSION = "R2.5.0";
     private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
     private static final String CACHE_FILE = "employees_cache_r2.json";
     private static final String NOTES_CACHE_FILE = "manager_notes_cache_r2.json";
@@ -152,7 +152,7 @@ public class MainActivity extends Activity {
         scroll.setBackgroundColor(BG);
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(16), dp(18), dp(16), dp(30));
+        root.setPadding(dp(12), dp(14), dp(12), dp(26));
         root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         root.setTextDirection(View.TEXT_DIRECTION_RTL);
         scroll.addView(root, new ScrollView.LayoutParams(
@@ -248,47 +248,47 @@ public class MainActivity extends Activity {
 
         root.addView(commandHero());
 
-        root.addView(space(12));
+        root.addView(space(9));
         root.addView(webModeTabs());
 
-        root.addView(space(12));
+        root.addView(space(9));
         root.addView(commandStatusPanel());
 
-        root.addView(space(14));
+        root.addView(space(11));
         root.addView(sectionTitle("مركز العمليات"));
         root.addView(commandModuleGrid());
 
-        root.addView(space(12));
+        root.addView(space(10));
         root.addView(homeActionBar());
 
-        root.addView(space(12));
-        TextView footer = text("R2.4.0 واجهة Native جديدة: ثيم داكن، أيقونات، كروت تشغيل، ومؤشرات واضحة مثل نسخة الويب.", 12, MUTED, false);
+        root.addView(space(10));
+        TextView footer = text("R2.5.0 Premium Compact: كروت أصغر، تدرجات، ظلال، وأحجام خط أكثر هدوءًا.", 11, MUTED, false);
         footer.setGravity(Gravity.CENTER);
         root.addView(footer);
     }
 
     private LinearLayout commandHero() {
-        LinearLayout hero = card(26);
-        hero.setPadding(dp(18), dp(18), dp(18), dp(18));
-        hero.setBackground(round(NAVY, 26, Color.rgb(34, 48, 110)));
+        LinearLayout hero = card(22);
+        hero.setPadding(dp(14), dp(14), dp(14), dp(14));
+        hero.setBackground(gradient(Color.rgb(13, 25, 78), Color.rgb(29, 43, 118), 22, Color.rgb(58, 72, 135)));
 
         LinearLayout top = horizontal();
-        ImageView logo = iconView(R.drawable.ic_hr_people, GOLD, Color.rgb(31, 43, 104), dp(58));
+        ImageView logo = iconView(R.drawable.ic_hr_people, GOLD, Color.rgb(31, 43, 104), dp(48));
         top.addView(logo);
         top.addView(spaceW(12));
 
         LinearLayout titles = new LinearLayout(this);
         titles.setOrientation(LinearLayout.VERTICAL);
         titles.setGravity(Gravity.RIGHT);
-        titles.addView(text("سجل الموظفين", 26, Color.WHITE, true));
-        titles.addView(space(4));
-        titles.addView(text("مديرية زراعة صلاح الدين · Android Native", 12, Color.rgb(207, 226, 244), false));
-        titles.addView(space(4));
-        titles.addView(text(APP_VERSION + " Command Center", 12, GOLD, true));
+        titles.addView(text("سجل الموظفين", 22, Color.WHITE, true));
+        titles.addView(space(3));
+        titles.addView(text("مديرية زراعة صلاح الدين · Android Native", 11, Color.rgb(207, 226, 244), false));
+        titles.addView(space(3));
+        titles.addView(text(APP_VERSION + " Premium Compact", 11, GOLD, true));
         top.addView(titles, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         hero.addView(top);
 
-        hero.addView(space(16));
+        hero.addView(space(11));
         LinearLayout roleBar = horizontal();
         roleBar.addView(lightBadge(roleLabel(), currentRole.equals(ROLE_ADMIN) ? GOLD : PURPLE));
         roleBar.addView(spaceW(8));
@@ -297,7 +297,7 @@ public class MainActivity extends Activity {
         roleBar.addView(lightBadge("Native UI", Color.rgb(125, 211, 252)));
         hero.addView(roleBar);
 
-        hero.addView(space(16));
+        hero.addView(space(11));
         LinearLayout kpis = horizontal();
         kpis.addView(heroKpi("الموظفون", String.valueOf(employees.size()), GOLD));
         kpis.addView(spaceW(8));
@@ -312,13 +312,13 @@ public class MainActivity extends Activity {
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
         box.setGravity(Gravity.CENTER);
-        box.setPadding(dp(10), dp(10), dp(10), dp(10));
-        box.setBackground(round(Color.rgb(20, 31, 82), 16, Color.rgb(45, 60, 120)));
+        box.setPadding(dp(8), dp(7), dp(8), dp(7));
+        box.setBackground(gradient(Color.rgb(18, 31, 86), Color.rgb(12, 22, 62), 14, Color.rgb(45, 60, 120)));
         box.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        TextView v = text(value, 25, accent, true);
+        TextView v = text(value, 21, accent, true);
         v.setGravity(Gravity.CENTER);
         v.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
-        TextView l = text(label, 10, Color.rgb(190, 205, 240), false);
+        TextView l = text(label, 9, Color.rgb(190, 205, 240), false);
         l.setGravity(Gravity.CENTER);
         box.addView(v);
         box.addView(l);
@@ -326,21 +326,21 @@ public class MainActivity extends Activity {
     }
 
     private LinearLayout commandStatusPanel() {
-        LinearLayout box = card(20);
-        box.setPadding(dp(16), dp(14), dp(16), dp(14));
-        box.setBackground(round(SOFT_BLUE, 20, BORDER));
+        LinearLayout box = card(18);
+        box.setPadding(dp(12), dp(11), dp(12), dp(11));
+        box.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(9, 18, 52), 18, BORDER));
         LinearLayout top = horizontal();
-        top.addView(iconView(R.drawable.ic_hr_sync, Color.rgb(125, 211, 252), Color.rgb(12, 35, 74), dp(46)));
-        top.addView(spaceW(10));
+        top.addView(iconView(R.drawable.ic_hr_sync, Color.rgb(125, 211, 252), Color.rgb(12, 35, 74), dp(40)));
+        top.addView(spaceW(9));
         LinearLayout t = new LinearLayout(this);
         t.setOrientation(LinearLayout.VERTICAL);
-        t.addView(text("حالة البيانات والتزامن", 18, TEXT, true));
-        t.addView(space(4));
-        t.addView(text("آخر تحديث: " + lastSync, 12, MUTED, false));
-        t.addView(text("نسخة البيانات: " + dataVersion, 12, MUTED, false));
+        t.addView(text("حالة البيانات والتزامن", 15, TEXT, true));
+        t.addView(space(3));
+        t.addView(text("آخر تحديث: " + lastSync, 10, MUTED, false));
+        t.addView(text("نسخة البيانات: " + dataVersion, 10, MUTED, false));
         top.addView(t, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         box.addView(top);
-        box.addView(space(12));
+        box.addView(space(9));
         LinearLayout mini = horizontal();
         mini.addView(compactPill("ملاحظات جديدة", String.valueOf(countNewNotes()), RED));
         mini.addView(spaceW(8));
@@ -355,12 +355,12 @@ public class MainActivity extends Activity {
         LinearLayout p = new LinearLayout(this);
         p.setOrientation(LinearLayout.VERTICAL);
         p.setGravity(Gravity.CENTER);
-        p.setPadding(dp(8), dp(8), dp(8), dp(8));
-        p.setBackground(round(Color.rgb(16, 27, 78), 14, Color.rgb(38, 52, 100)));
-        TextView v = text(value, hasDigit(value) ? 18 : 13, accent, true);
+        p.setPadding(dp(7), dp(6), dp(7), dp(6));
+        p.setBackground(round(Color.rgb(16, 27, 78), 12, Color.rgb(38, 52, 100)));
+        TextView v = text(value, hasDigit(value) ? 16 : 11, accent, true);
         v.setGravity(Gravity.CENTER);
         if (hasDigit(value)) v.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
-        TextView l = text(label, 9, MUTED, false);
+        TextView l = text(label, 8, MUTED, false);
         l.setGravity(Gravity.CENTER);
         p.addView(v);
         p.addView(l);
@@ -377,24 +377,24 @@ public class MainActivity extends Activity {
             employeeDirectoryFilter = "الكل";
             showEmployeeDirectory();
         }));
-        r1.addView(spaceW(10));
+        r1.addView(spaceW(8));
         r1.addView(moduleCard("ملاحظات المدير", "حركات إدارية وسجل مراجعة حسب نوع الجهاز", R.drawable.ic_hr_notes, PURPLE, v -> showManagerNotes()));
         grid.addView(r1);
 
-        grid.addView(space(10));
+        grid.addView(space(8));
         LinearLayout r2 = horizontal();
         r2.addView(moduleCard("لوحة المسؤول", "مؤشرات تشغيل ومراجعة سريعة", R.drawable.ic_hr_admin, GREEN, v -> showAdminDashboard()));
-        r2.addView(spaceW(10));
+        r2.addView(spaceW(8));
         r2.addView(moduleCard("جودة البيانات", "اكتمال ملفات ونواقص داخل بطاقة الموظف", R.drawable.ic_hr_quality, ORANGE, v -> {
             employeeDirectoryFilter = "الكل";
             showEmployeeDirectory();
         }));
         grid.addView(r2);
 
-        grid.addView(space(10));
+        grid.addView(space(8));
         LinearLayout r3 = horizontal();
         r3.addView(moduleCard("مركز التحديث", "آلية التثبيت واسم Artifact الحالي", R.drawable.ic_hr_update, Color.rgb(125, 211, 252), v -> showUpdateCenter()));
-        r3.addView(spaceW(10));
+        r3.addView(spaceW(8));
         r3.addView(moduleCard("ملف الموظف", "هوية وظيفية بتقسيم قريب من الويب", R.drawable.ic_hr_profile, PRIMARY, v -> {
             employeeDirectoryFilter = "الكل";
             showEmployeeDirectory();
@@ -404,30 +404,30 @@ public class MainActivity extends Activity {
     }
 
     private LinearLayout moduleCard(String title, String desc, int iconRes, int accent, View.OnClickListener listener) {
-        LinearLayout c = card(20);
-        c.setPadding(dp(14), dp(14), dp(14), dp(14));
-        c.setMinimumHeight(dp(150));
+        LinearLayout c = card(16);
+        c.setPadding(dp(10), dp(10), dp(10), dp(10));
+        c.setMinimumHeight(dp(106));
         c.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        c.setBackground(round(Color.rgb(12, 22, 58), 20, Color.rgb(38, 52, 100)));
+        c.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(9, 18, 52), 16, Color.rgb(38, 52, 100)));
         c.setOnClickListener(listener);
 
         LinearLayout top = horizontal();
-        top.addView(iconView(iconRes, accent, Color.rgb(22, 34, 83), dp(48)));
-        top.addView(spaceW(10));
+        top.addView(iconView(iconRes, accent, Color.rgb(22, 34, 83), dp(38)));
+        top.addView(spaceW(8));
         LinearLayout titleBox = new LinearLayout(this);
         titleBox.setOrientation(LinearLayout.VERTICAL);
-        titleBox.addView(text(title, 17, TEXT, true));
-        titleBox.addView(space(4));
-        titleBox.addView(text(desc, 11, MUTED, false));
+        titleBox.addView(text(title, 14, TEXT, true));
+        titleBox.addView(space(3));
+        titleBox.addView(text(desc, 9, MUTED, false));
         top.addView(titleBox, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         c.addView(top);
 
-        c.addView(space(12));
+        c.addView(space(8));
         View line = new View(this);
         line.setBackgroundColor(accent);
         c.addView(line, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(2)));
-        c.addView(space(10));
-        c.addView(text("اضغط للفتح", 11, accent, true));
+        c.addView(space(6));
+        c.addView(text("فتح", 10, accent, true));
         return c;
     }
 
@@ -445,10 +445,11 @@ public class MainActivity extends Activity {
     }
 
     private LinearLayout webModeTabs() {
-        LinearLayout box = card(18);
-        box.setPadding(dp(12), dp(12), dp(12), dp(12));
-        box.addView(text("نطاق السجل مثل نسخة الويب", 17, TEXT, true));
-        box.addView(space(8));
+        LinearLayout box = card(16);
+        box.setPadding(dp(10), dp(10), dp(10), dp(10));
+        box.setBackground(gradient(Color.rgb(12, 22, 58), Color.rgb(8, 16, 44), 16, BORDER));
+        box.addView(text("نطاق السجل", 14, TEXT, true));
+        box.addView(space(6));
         LinearLayout tabs = horizontal();
         Button perm = primaryButton("الدائميون");
         perm.setOnClickListener(v -> {
@@ -456,14 +457,14 @@ public class MainActivity extends Activity {
             showEmployeeDirectory();
         });
         tabs.addView(perm, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        tabs.addView(spaceW(8));
+        tabs.addView(spaceW(6));
         Button cont = outlineButton("العقود");
         cont.setOnClickListener(v -> {
             employeeDirectoryFilter = "عقد";
             showEmployeeDirectory();
         });
         tabs.addView(cont, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        tabs.addView(spaceW(8));
+        tabs.addView(spaceW(6));
         Button admin = outlineButton("الإدارة");
         admin.setOnClickListener(v -> showAdminDashboard());
         tabs.addView(admin, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
@@ -510,20 +511,20 @@ public class MainActivity extends Activity {
     }
 
     private LinearLayout screenHero(String titleText, String subtitleText, int iconRes, int accent) {
-        LinearLayout header = card(22);
-        header.setPadding(dp(18), dp(18), dp(18), dp(18));
-        header.setBackground(round(NAVY, 22, Color.rgb(42, 56, 118)));
+        LinearLayout header = card(18);
+        header.setPadding(dp(13), dp(13), dp(13), dp(13));
+        header.setBackground(gradient(Color.rgb(13, 25, 78), Color.rgb(8, 17, 48), 18, Color.rgb(42, 56, 118)));
         LinearLayout top = horizontal();
-        top.addView(iconView(iconRes, accent, Color.rgb(22, 34, 83), dp(52)));
-        top.addView(spaceW(12));
+        top.addView(iconView(iconRes, accent, Color.rgb(22, 34, 83), dp(42)));
+        top.addView(spaceW(10));
         LinearLayout labels = new LinearLayout(this);
         labels.setOrientation(LinearLayout.VERTICAL);
-        labels.addView(text(titleText, 22, Color.WHITE, true));
-        labels.addView(space(5));
-        labels.addView(text(subtitleText, 12, Color.rgb(190, 205, 240), false));
+        labels.addView(text(titleText, 18, Color.WHITE, true));
+        labels.addView(space(3));
+        labels.addView(text(subtitleText, 10, Color.rgb(190, 205, 240), false));
         top.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         header.addView(top);
-        header.addView(space(12));
+        header.addView(space(9));
         View line = new View(this);
         line.setBackgroundColor(accent);
         header.addView(line, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(2)));
@@ -630,13 +631,14 @@ public class MainActivity extends Activity {
         header.addView(badges);
         root.addView(header);
 
-        root.addView(space(12));
-        LinearLayout searchCard = card(18);
-        searchCard.setPadding(dp(16), dp(16), dp(16), dp(16));
-        searchCard.addView(text("البحث الإداري السريع", 18, TEXT, true));
-        searchCard.addView(space(6));
-        searchCard.addView(text("النطاق الحالي: " + employeeDirectoryFilter + "، اكتب حرفين أو أكثر من الاسم أو الرقم الوظيفي أو الشعبة أو اسم الأم.", 12, MUTED, false));
-        searchCard.addView(space(10));
+        root.addView(space(9));
+        LinearLayout searchCard = card(16);
+        searchCard.setPadding(dp(12), dp(12), dp(12), dp(12));
+        searchCard.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(8, 17, 48), 16, BORDER));
+        searchCard.addView(text("البحث الإداري السريع", 15, TEXT, true));
+        searchCard.addView(space(4));
+        searchCard.addView(text("النطاق الحالي: " + employeeDirectoryFilter + "، ابحث بالاسم أو الرقم أو الشعبة أو اسم الأم.", 10, MUTED, false));
+        searchCard.addView(space(8));
         HorizontalScrollView filterScroll = new HorizontalScrollView(this);
         filterScroll.setHorizontalScrollBarEnabled(false);
         LinearLayout filterChips = chipsBar();
@@ -652,12 +654,12 @@ public class MainActivity extends Activity {
         }
         filterScroll.addView(filterChips);
         searchCard.addView(filterScroll);
-        searchCard.addView(space(10));
+        searchCard.addView(space(8));
         EditText search = editText("اكتب اسم الموظف أو الرقم الوظيفي...");
         search.setSingleLine(true);
         searchCard.addView(search);
-        searchCard.addView(space(10));
-        TextView status = text("جاهز للبحث", 12, MUTED, false);
+        searchCard.addView(space(8));
+        TextView status = text("جاهز للبحث", 10, MUTED, false);
         searchCard.addView(status);
         root.addView(searchCard);
 
@@ -735,45 +737,44 @@ public class MainActivity extends Activity {
     }
 
     private LinearLayout employeeCard(Employee e) {
-        LinearLayout c = card(18);
-        c.setPadding(dp(14), dp(14), dp(14), dp(14));
+        LinearLayout c = card(16);
+        c.setPadding(dp(10), dp(10), dp(10), dp(10));
+        c.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(8, 17, 48), 16, Color.rgb(42, 56, 118)));
         c.setOnClickListener(v -> showEmployeeProfile(e));
 
         LinearLayout top = horizontal();
-        TextView avatar = text(cardInitials(e.name), 18, Color.WHITE, true);
+        TextView avatar = text(cardInitials(e.name), 15, Color.WHITE, true);
         avatar.setGravity(Gravity.CENTER);
-        avatar.setBackground(round("عقد".equals(e.typeLabel()) ? ORANGE : PRIMARY, 18, "عقد".equals(e.typeLabel()) ? ORANGE : PRIMARY));
-        top.addView(avatar, new LinearLayout.LayoutParams(dp(54), dp(54)));
-        top.addView(spaceW(10));
+        avatar.setBackground(gradient("عقد".equals(e.typeLabel()) ? ORANGE : PRIMARY, Color.rgb(22, 34, 83), 15, "عقد".equals(e.typeLabel()) ? ORANGE : PRIMARY));
+        top.addView(avatar, new LinearLayout.LayoutParams(dp(42), dp(42)));
+        top.addView(spaceW(8));
         LinearLayout titleBox = new LinearLayout(this);
         titleBox.setOrientation(LinearLayout.VERTICAL);
         titleBox.setGravity(Gravity.RIGHT);
-        titleBox.addView(text(e.name, 18, TEXT, true));
-        titleBox.addView(space(4));
-        titleBox.addView(text(safe(e.jobTitle) + " · " + safe(e.branch), 12, MUTED, false));
+        titleBox.addView(text(e.name, 15, TEXT, true));
+        titleBox.addView(space(3));
+        titleBox.addView(text(safe(e.jobTitle) + " · " + safe(e.branch), 10, MUTED, false));
         top.addView(titleBox, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         c.addView(top);
 
-        c.addView(space(12));
-        LinearLayout badges = horizontal();
-        badges.addView(badge(e.typeLabel(), "عقد".equals(e.typeLabel()) ? ORANGE : GREEN));
-        badges.addView(spaceW(8));
-        badges.addView(badge("رقم: " + safe(e.id), PRIMARY));
-        badges.addView(spaceW(8));
-        badges.addView(badge("اكتمال " + profileCompletion(e) + "%", profileCompletion(e) >= 75 ? GREEN : ORANGE));
-        c.addView(badges);
-        c.addView(space(9));
-        c.addView(text("الدرجة/المرحلة: " + safe(e.grade) + " / " + safe(e.step), 13, TEXT, false));
-        c.addView(text("التحصيل: " + safe(e.education) + " · التعيين: " + shortDate(e.hireDate), 13, MUTED, false));
         c.addView(space(8));
-        c.addView(text("اضغط على البطاقة لعرض ملف الموظف الكامل ومركز النواقص.", 12, PRIMARY, true));
-        c.addView(space(10));
+        LinearLayout badges = horizontal();
+        badges.addView(miniBadge(e.typeLabel(), "عقد".equals(e.typeLabel()) ? ORANGE : GREEN));
+        badges.addView(spaceW(6));
+        badges.addView(miniBadge("رقم " + safe(e.id), PRIMARY));
+        badges.addView(spaceW(6));
+        badges.addView(miniBadge(profileCompletion(e) + "%", profileCompletion(e) >= 75 ? GREEN : ORANGE));
+        c.addView(badges);
+        c.addView(space(6));
+        c.addView(text("الدرجة/المرحلة: " + safe(e.grade) + " / " + safe(e.step), 11, TEXT, false));
+        c.addView(text("التحصيل: " + safe(e.education) + " · التعيين: " + shortDate(e.hireDate), 10, MUTED, false));
+        c.addView(space(7));
 
         LinearLayout actions = horizontal();
         Button open = primaryButton("فتح بطاقة الموظف");
         open.setOnClickListener(v -> showEmployeeProfile(e));
         actions.addView(open, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        actions.addView(spaceW(8));
+        actions.addView(spaceW(6));
         Button choose = outlineButton("اختيار للملاحظات");
         choose.setOnClickListener(v -> {
             selectedEmployee = e;
@@ -868,49 +869,50 @@ public class MainActivity extends Activity {
     }
 
     private LinearLayout employeeProfileHero(Employee e) {
-        LinearLayout header = card(20);
-        header.setPadding(dp(18), dp(18), dp(18), dp(18));
-        header.setBackground(round(NAVY, 20, NAVY));
+        LinearLayout header = card(18);
+        header.setPadding(dp(13), dp(13), dp(13), dp(13));
+        header.setBackground(gradient(Color.rgb(13, 25, 78), Color.rgb(8, 17, 48), 18, NAVY));
 
         LinearLayout top = horizontal();
-        TextView avatar = text(cardInitials(e.name), 22, NAVY, true);
+        TextView avatar = text(cardInitials(e.name), 18, NAVY, true);
         avatar.setGravity(Gravity.CENTER);
-        avatar.setBackground(round(GOLD, 20, GOLD));
-        top.addView(avatar, new LinearLayout.LayoutParams(dp(68), dp(68)));
-        top.addView(spaceW(12));
+        avatar.setBackground(gradient(GOLD, Color.rgb(255, 167, 38), 18, GOLD));
+        top.addView(avatar, new LinearLayout.LayoutParams(dp(54), dp(54)));
+        top.addView(spaceW(10));
 
         LinearLayout titleBox = new LinearLayout(this);
         titleBox.setOrientation(LinearLayout.VERTICAL);
         titleBox.setGravity(Gravity.RIGHT);
-        titleBox.addView(text(e.name, 23, Color.WHITE, true));
-        titleBox.addView(space(5));
-        titleBox.addView(text(safe(e.jobTitle) + " · " + safe(e.branch), 13, Color.rgb(207, 226, 244), false));
+        titleBox.addView(text(e.name, 19, Color.WHITE, true));
+        titleBox.addView(space(3));
+        titleBox.addView(text(safe(e.jobTitle) + " · " + safe(e.branch), 11, Color.rgb(207, 226, 244), false));
         top.addView(titleBox, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         header.addView(top);
 
-        header.addView(space(14));
+        header.addView(space(10));
         LinearLayout badges = horizontal();
         badges.addView(lightBadge(e.typeLabel(), "عقد".equals(e.typeLabel()) ? ORANGE : GREEN));
-        badges.addView(spaceW(8));
+        badges.addView(spaceW(6));
         badges.addView(lightBadge("رقم وظيفي: " + safe(e.id), SOFT_BLUE));
-        badges.addView(spaceW(8));
+        badges.addView(spaceW(6));
         badges.addView(lightBadge("ملف ويب داخل Native", SOFT_GOLD));
         header.addView(badges);
         return header;
     }
 
     private LinearLayout profileMetric(String label, String value, int accent) {
-        LinearLayout c = card(16);
-        c.setPadding(dp(12), dp(12), dp(12), dp(12));
+        LinearLayout c = card(14);
+        c.setPadding(dp(10), dp(9), dp(10), dp(9));
+        c.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(8, 17, 48), 14, BORDER));
         c.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        TextView v = text(value, 22, accent, true);
+        TextView v = text(value, 18, accent, true);
         v.setGravity(Gravity.CENTER);
         if (hasDigit(value)) {
             v.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
         } else {
             v.setTypeface(titleTypeface == null ? Typeface.DEFAULT_BOLD : titleTypeface, Typeface.BOLD);
         }
-        TextView l = text(label, 12, MUTED, false);
+        TextView l = text(label, 9, MUTED, false);
         l.setGravity(Gravity.CENTER);
         c.addView(v);
         c.addView(l);
@@ -918,17 +920,18 @@ public class MainActivity extends Activity {
     }
 
     private LinearLayout dataQualityCard(Employee e) {
-        LinearLayout box = card(18);
-        box.setPadding(dp(16), dp(14), dp(16), dp(14));
-        box.addView(text("مركز جودة البيانات", 18, TEXT, true));
+        LinearLayout box = card(16);
+        box.setPadding(dp(12), dp(11), dp(12), dp(11));
+        box.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(8, 17, 48), 16, BORDER));
+        box.addView(text("مركز جودة البيانات", 15, TEXT, true));
         box.addView(space(6));
         int missing = profileMissingCount(e);
         String state = missing == 0 ? "الملف مكتمل في الحقول الأساسية المتوفرة." : "نواقص تحتاج مراجعة: " + missing;
-        box.addView(text(state, 13, missing == 0 ? GREEN : RED, true));
-        box.addView(space(8));
-        box.addView(text(missingFieldsText(e), 13, TEXT, false));
-        box.addView(space(8));
-        box.addView(text("هذا القسم يقرب Native من مركز النواقص الموجود في نسخة الويب، ويجعل جودة الملف واضحة داخل بطاقة الموظف.", 12, MUTED, false));
+        box.addView(text(state, 11, missing == 0 ? GREEN : RED, true));
+        box.addView(space(6));
+        box.addView(text(missingFieldsText(e), 11, TEXT, false));
+        box.addView(space(6));
+        box.addView(text("يعرض النواقص الأساسية مباشرة داخل بطاقة الموظف.", 10, MUTED, false));
         return box;
     }
 
@@ -1002,11 +1005,12 @@ public class MainActivity extends Activity {
     }
 
     private LinearLayout infoSection(String title, String body) {
-        LinearLayout box = card(18);
-        box.setPadding(dp(16), dp(14), dp(16), dp(14));
-        box.addView(text(title, 17, TEXT, true));
-        box.addView(space(8));
-        TextView content = text(body, 13, TEXT, false);
+        LinearLayout box = card(14);
+        box.setPadding(dp(12), dp(10), dp(12), dp(10));
+        box.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(8, 17, 48), 14, BORDER));
+        box.addView(text(title, 14, TEXT, true));
+        box.addView(space(6));
+        TextView content = text(body, 11, TEXT, false);
         content.setLineSpacing(dp(2), 1.0f);
         box.addView(content);
         return box;
@@ -1129,9 +1133,9 @@ public class MainActivity extends Activity {
         root.addView(space(12));
         LinearLayout release = card(18);
         release.setPadding(dp(16), dp(14), dp(16), dp(14));
-        release.addView(text("محتوى R2.4.0", 18, TEXT, true));
+        release.addView(text("محتوى R2.5.0", 18, TEXT, true));
         release.addView(space(8));
-        release.addView(text("• واجهة رئيسية جديدة بالكامل بثيم داكن قريب من نسخة الويب\n• أيقونات Native داخل المشروع للوحدات الرئيسية\n• كروت تشغيل كبيرة: قائمة، ملاحظات، مسؤول، جودة، تحديث، ملف موظف\n• شريط مؤشرات واضح للموظفين والدائميين والعقود\n• لوحة حالة بيانات وتزامن داخل الصفحة الرئيسية\n• استمرار خطوط SF Sultan وYa Modern Pro وStencil", 13, TEXT, false));
+        release.addView(text("• تحويل الواجهة إلى Premium Compact\n• كروت أصغر وأكثر كثافة وتنظيمًا\n• تدرجات وظلال Native للكروت والهيدرات\n• تحسين أحجام الخطوط والشارات والأزرار\n• تصغير كروت نتائج الموظفين مع إبقاء الوظائف\n• تحسين فقاعات الأيقونات حسب الحجم\n• استمرار خطوط SF Sultan وYa Modern Pro وStencil", 13, TEXT, false));
         root.addView(release);
 
         root.addView(space(12));
@@ -1315,7 +1319,7 @@ public class MainActivity extends Activity {
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
         box.addView(text("سجل الملاحظات", 18, TEXT, true));
         box.addView(space(4));
-        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.4.0.", 11, MUTED, false));
+        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.5.0.", 11, MUTED, false));
         box.addView(space(8));
 
         HorizontalScrollView hsv = new HorizontalScrollView(this);
@@ -1664,8 +1668,8 @@ public class MainActivity extends Activity {
     }
 
     private TextView sectionTitle(String s) {
-        TextView t = text(s, 18, TEXT, true);
-        t.setPadding(dp(2), dp(4), dp(2), dp(8));
+        TextView t = text(s, 15, TEXT, true);
+        t.setPadding(dp(2), dp(3), dp(2), dp(6));
         return t;
     }
 
@@ -1674,6 +1678,7 @@ public class MainActivity extends Activity {
         l.setOrientation(LinearLayout.VERTICAL);
         l.setBackground(round(CARD, radius, BORDER));
         l.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        l.setElevation(dp(2));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         l.setLayoutParams(lp);
         return l;
@@ -1741,27 +1746,35 @@ public class MainActivity extends Activity {
         b.setAllCaps(false);
         b.setText(s);
         b.setTextColor(fg);
-        b.setTextSize(13);
+        b.setTextSize(12);
         b.setGravity(Gravity.CENTER);
-        b.setPadding(dp(12), 0, dp(12), 0);
+        b.setPadding(dp(10), 0, dp(10), 0);
         b.setBackground(round(bg, 18, bg == Color.WHITE ? BORDER : Color.rgb(52, 66, 125)));
         b.setTypeface(titleTypeface == null ? Typeface.DEFAULT_BOLD : titleTypeface, Typeface.BOLD);
         return b;
     }
 
     private TextView badge(String s, int color) {
-        TextView b = text(s, 12, Color.WHITE, true);
+        TextView b = text(s, 10, Color.WHITE, true);
         b.setGravity(Gravity.CENTER);
-        b.setPadding(dp(10), dp(4), dp(10), dp(4));
+        b.setPadding(dp(8), dp(3), dp(8), dp(3));
         b.setBackground(round(color, 50, color));
+        return b;
+    }
+
+    private TextView miniBadge(String s, int color) {
+        TextView b = text(s, 10, Color.WHITE, true);
+        b.setGravity(Gravity.CENTER);
+        b.setPadding(dp(7), dp(3), dp(7), dp(3));
+        b.setBackground(gradient(color, Color.rgb(22, 34, 83), 30, color));
         return b;
     }
 
     private TextView lightBadge(String s, int color) {
         int brightness = (Color.red(color) * 299 + Color.green(color) * 587 + Color.blue(color) * 114) / 1000;
-        TextView b = text(s, 12, brightness > 145 ? NAVY : Color.WHITE, true);
+        TextView b = text(s, 10, brightness > 145 ? NAVY : Color.WHITE, true);
         b.setGravity(Gravity.CENTER);
-        b.setPadding(dp(10), dp(4), dp(10), dp(4));
+        b.setPadding(dp(8), dp(3), dp(8), dp(3));
         b.setBackground(round(color, 50, color));
         return b;
     }
@@ -1770,8 +1783,9 @@ public class MainActivity extends Activity {
         ImageView icon = new ImageView(this);
         icon.setImageResource(resId);
         icon.setColorFilter(fg);
-        icon.setPadding(dp(11), dp(11), dp(11), dp(11));
-        icon.setBackground(round(bg, 16, Color.rgb(52, 66, 125)));
+        int pad = Math.max(dp(7), size / 5);
+        icon.setPadding(pad, pad, pad, pad);
+        icon.setBackground(gradient(bg, Color.rgb(10, 22, 60), 14, Color.rgb(52, 66, 125)));
         icon.setLayoutParams(new LinearLayout.LayoutParams(size, size));
         return icon;
     }
@@ -1807,6 +1821,13 @@ public class MainActivity extends Activity {
     private GradientDrawable round(int color, int radius, int stroke) {
         GradientDrawable g = new GradientDrawable();
         g.setColor(color);
+        g.setCornerRadius(dp(radius));
+        g.setStroke(dp(1), stroke);
+        return g;
+    }
+
+    private GradientDrawable gradient(int start, int end, int radius, int stroke) {
+        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{start, end});
         g.setCornerRadius(dp(radius));
         g.setStroke(dp(1), stroke);
         return g;
