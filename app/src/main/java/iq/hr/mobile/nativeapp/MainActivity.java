@@ -45,7 +45,7 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "R2.0.6";
+    private static final String APP_VERSION = "R2.0.7";
     private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
     private static final String CACHE_FILE = "employees_cache_r2.json";
     private static final String NOTES_CACHE_FILE = "manager_notes_cache_r2.json";
@@ -410,11 +410,16 @@ public class MainActivity extends Activity {
         Button choose = outlineButton("اختيار للملاحظات");
         choose.setOnClickListener(v -> {
             selectedEmployee = e;
-            currentRole = ROLE_HR;
             Toast.makeText(this, "تم اختيار الموظف للملاحظات", Toast.LENGTH_SHORT).show();
             showManagerNotes();
         });
-        actions.addView(choose, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        if (currentRole.equals(ROLE_HR)) {
+            actions.addView(choose, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        } else {
+            Button review = outlineButton("فتح المراجعة");
+            review.setOnClickListener(v -> showManagerNotes());
+            actions.addView(review, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        }
         c.addView(actions);
         return c;
     }
@@ -471,10 +476,11 @@ public class MainActivity extends Activity {
         ));
 
         root.addView(space(14));
-        Button note = primaryButton("اختيار الموظف في ملاحظات المدير");
+        Button note = primaryButton(currentRole.equals(ROLE_HR) ? "اختيار الموظف في ملاحظات المدير" : "فتح ملاحظات المدير للمراجعة");
         note.setOnClickListener(v -> {
-            selectedEmployee = e;
-            currentRole = ROLE_HR;
+            if (currentRole.equals(ROLE_HR)) {
+                selectedEmployee = e;
+            }
             showManagerNotes();
         });
         root.addView(note);
@@ -544,6 +550,9 @@ public class MainActivity extends Activity {
     }
 
     private void showManagerNotes() {
+        if (currentRole.equals(ROLE_HR) && "الأرشيف".equals(currentFilter)) {
+            currentFilter = "الكل";
+        }
         baseScreen();
 
         LinearLayout header = premiumHeader("ملاحظات مدير الموارد البشرية", "متابعة النقل، التنسيب، إنهاء التنسيب، والملاحظات الإدارية");
@@ -717,7 +726,9 @@ public class MainActivity extends Activity {
         HorizontalScrollView hsv = new HorizontalScrollView(this);
         hsv.setHorizontalScrollBarEnabled(false);
         LinearLayout chips = chipsBar();
-        String[] filters = {"الكل", "الجديد", "نقل", "تنسيب", "إنهاء تنسيب", "ملاحظات", "الأرشيف"};
+        String[] filters = currentRole.equals(ROLE_ADMIN)
+                ? new String[]{"الكل", "الجديد", "نقل", "تنسيب", "إنهاء تنسيب", "ملاحظات", "الأرشيف"}
+                : new String[]{"الكل", "الجديد", "نقل", "تنسيب", "إنهاء تنسيب", "ملاحظات"};
         for (String f : filters) {
             Button b = chipButton(f, f.equals(currentFilter));
             b.setOnClickListener(v -> {
