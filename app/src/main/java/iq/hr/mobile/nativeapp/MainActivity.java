@@ -44,7 +44,7 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "R2.0.3";
+    private static final String APP_VERSION = "R2.0.4";
     private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
     private static final String CACHE_FILE = "employees_cache_r2.json";
 
@@ -166,7 +166,7 @@ public class MainActivity extends Activity {
         root.addView(syncBtn);
 
         root.addView(space(12));
-        TextView footer = text("R2.0.3 يقرأ data/employees.json ويعرض بطاقة موظف تفصيلية داخل التطبيق.", 12, MUTED, false);
+        TextView footer = text("R2.0.4 نسخة موقّعة بتوقيع ثابت، مع استمرار قراءة بيانات GitHub وبطاقة الموظف.", 12, MUTED, false);
         footer.setGravity(Gravity.CENTER);
         root.addView(footer);
     }
@@ -555,7 +555,7 @@ public class MainActivity extends Activity {
             String noteText = note.getText().toString().trim();
             notes.add(0, new ManagerNote("MN-" + System.currentTimeMillis(), currentMovement, selectedEmployee.name,
                     selectedEmployee.branch, currentMovement.equals("ملاحظة") ? "" : "الشعبة الجديدة", noteText, "new", now()));
-            Toast.makeText(this, "تم إرسال الملاحظة محليًا في R2.0.3", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "تم إرسال الملاحظة محليًا في R2.0.4", Toast.LENGTH_SHORT).show();
             selectedEmployee = null;
             showManagerNotes();
         });

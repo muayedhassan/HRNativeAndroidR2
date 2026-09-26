@@ -5,3 +5,8 @@ local.properties
 *.iml
 .idea/
 .DS_Store
+
+hr-native-release.jks
+keystore_base64.txt
+*.jks
+*.keystore
