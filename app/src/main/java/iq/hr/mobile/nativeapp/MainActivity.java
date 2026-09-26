@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
@@ -44,24 +45,29 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "R2.0.5";
+    private static final String APP_VERSION = "R2.0.6";
     private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
     private static final String CACHE_FILE = "employees_cache_r2.json";
     private static final String NOTES_CACHE_FILE = "manager_notes_cache_r2.json";
+    private static final String PREFS_FILE = "hr_native_preferences_r2";
+    private static final String ROLE_ADMIN = "system_admin";
+    private static final String ROLE_HR = "hr_manager";
 
-    private static final int BG = Color.rgb(245, 247, 251);
+    private static final int BG = Color.rgb(242, 246, 252);
     private static final int CARD = Color.WHITE;
-    private static final int TEXT = Color.rgb(24, 33, 48);
+    private static final int TEXT = Color.rgb(18, 30, 52);
     private static final int MUTED = Color.rgb(105, 117, 135);
-    private static final int PRIMARY = Color.rgb(32, 97, 202);
+    private static final int PRIMARY = Color.rgb(25, 76, 160);
     private static final int GREEN = Color.rgb(20, 150, 96);
     private static final int ORANGE = Color.rgb(220, 132, 28);
-    private static final int PURPLE = Color.rgb(120, 82, 210);
-    private static final int RED = Color.rgb(205, 61, 72);
-    private static final int BORDER = Color.rgb(225, 231, 241);
+    private static final int PURPLE = Color.rgb(105, 72, 190);
+    private static final int RED = Color.rgb(202, 58, 70);
+    private static final int BORDER = Color.rgb(218, 226, 239);
+    private static final int NAVY = Color.rgb(16, 40, 84);
+    private static final int SOFT_BLUE = Color.rgb(235, 242, 255);
 
     private LinearLayout root;
-    private String currentRole = "system_admin";
+    private String currentRole = ROLE_ADMIN;
     private String currentMovement = "ملاحظة";
     private Employee selectedEmployee;
     private final List<Employee> employees = new ArrayList<>();
@@ -73,6 +79,7 @@ public class MainActivity extends Activity {
     private int permCount = 0;
     private int contCount = 0;
     private boolean isSyncing = false;
+    private boolean roleConfigured = false;
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final ExecutorService io = Executors.newSingleThreadExecutor();
 
@@ -84,7 +91,12 @@ public class MainActivity extends Activity {
         loadCachedEmployees();
         loadCachedNotes();
         if (notes.isEmpty()) seedNotes();
-        showHome();
+        loadDeviceRole();
+        if (!roleConfigured) {
+            showDeviceRoleSetup();
+        } else {
+            showHome();
+        }
     }
 
     private void seedFallbackData() {
@@ -120,34 +132,110 @@ public class MainActivity extends Activity {
         setContentView(scroll);
     }
 
+    private void loadDeviceRole() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_FILE, MODE_PRIVATE);
+        String savedRole = prefs.getString("deviceRole", "");
+        roleConfigured = prefs.getBoolean("roleConfigured", false);
+        if (ROLE_ADMIN.equals(savedRole) || ROLE_HR.equals(savedRole)) {
+            currentRole = savedRole;
+        } else {
+            currentRole = ROLE_ADMIN;
+            roleConfigured = false;
+        }
+    }
+
+    private void saveDeviceRole(String role) {
+        currentRole = ROLE_HR.equals(role) ? ROLE_HR : ROLE_ADMIN;
+        roleConfigured = true;
+        getSharedPreferences(PREFS_FILE, MODE_PRIVATE)
+                .edit()
+                .putString("deviceRole", currentRole)
+                .putBoolean("roleConfigured", true)
+                .apply();
+    }
+
+    private void showDeviceRoleSetup() {
+        baseScreen();
+        LinearLayout header = premiumHeader("تهيئة الجهاز", "حدد صلاحية هذا الهاتف مرة واحدة، ثم سيعمل التطبيق بهذه الهوية تلقائيًا");
+        root.addView(header);
+        root.addView(space(14));
+
+        LinearLayout box = card(20);
+        box.setPadding(dp(18), dp(18), dp(18), dp(18));
+        box.addView(text("اختر نوع الجهاز", 20, TEXT, true));
+        box.addView(space(8));
+        box.addView(text("مسؤول النظام يراجع ويؤرشف، ومدير الموارد البشرية يرسل الملاحظات ويبحث عن الموظفين.", 13, MUTED, false));
+        box.addView(space(14));
+
+        final String[] selectedRole = { currentRole == null || currentRole.length() == 0 ? ROLE_ADMIN : currentRole };
+        TextView selected = text("الاختيار الحالي: " + (ROLE_ADMIN.equals(selectedRole[0]) ? "مسؤول النظام" : "مدير الموارد البشرية"), 14, PRIMARY, true);
+
+        Button admin = primaryButton("مسؤول النظام");
+        Button hr = outlineButton("مدير الموارد البشرية");
+        admin.setOnClickListener(v -> {
+            selectedRole[0] = ROLE_ADMIN;
+            selected.setText("الاختيار الحالي: مسؤول النظام");
+        });
+        hr.setOnClickListener(v -> {
+            selectedRole[0] = ROLE_HR;
+            selected.setText("الاختيار الحالي: مدير الموارد البشرية");
+        });
+        LinearLayout choices = horizontal();
+        choices.addView(admin, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        choices.addView(spaceW(8));
+        choices.addView(hr, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        box.addView(choices);
+        box.addView(space(10));
+        box.addView(selected);
+        box.addView(space(12));
+
+        EditText pin = editText("رمز التفعيل");
+        pin.setSingleLine(true);
+        box.addView(pin);
+        box.addView(space(8));
+        box.addView(text("رمز مسؤول النظام: 1001 — رمز مدير الموارد البشرية: 2002", 12, MUTED, false));
+        box.addView(space(14));
+
+        Button save = primaryButton("حفظ هوية الجهاز");
+        save.setOnClickListener(v -> {
+            String entered = pin.getText().toString().trim();
+            boolean ok = (ROLE_ADMIN.equals(selectedRole[0]) && "1001".equals(entered))
+                    || (ROLE_HR.equals(selectedRole[0]) && "2002".equals(entered));
+            if (!ok) {
+                Toast.makeText(this, "رمز التفعيل غير صحيح", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            saveDeviceRole(selectedRole[0]);
+            Toast.makeText(this, "تم حفظ هوية الجهاز: " + roleLabel(), Toast.LENGTH_SHORT).show();
+            showHome();
+        });
+        box.addView(save);
+        root.addView(box);
+    }
+
     private void showHome() {
         baseScreen();
 
-        LinearLayout hero = card(18);
-        hero.setPadding(dp(18), dp(18), dp(18), dp(18));
-        TextView title = text("نظام الموارد البشرية", 24, TEXT, true);
-        TextView subtitle = text("نسخة Android Native " + APP_VERSION + " — حفظ محلي للملاحظات واختبار تحديث موقّع", 13, MUTED, false);
-        hero.addView(title);
-        hero.addView(space(6));
-        hero.addView(subtitle);
-        hero.addView(space(14));
-
+        LinearLayout hero = premiumHeader("نظام الموارد البشرية", "Android Native " + APP_VERSION + " — تصميم احترافي وهوية جهاز ثابتة");
+        hero.addView(space(12));
         LinearLayout roleBar = horizontal();
-        roleBar.addView(roleButton("مسؤول النظام", "system_admin"));
+        roleBar.addView(badge("نوع الجهاز: " + roleLabel(), currentRole.equals(ROLE_ADMIN) ? PRIMARY : PURPLE));
         roleBar.addView(spaceW(8));
-        roleBar.addView(roleButton("مدير الموارد البشرية", "hr_manager"));
+        Button resetRole = outlineButton("إعادة تهيئة الجهاز");
+        resetRole.setOnClickListener(v -> showDeviceRoleSetup());
+        roleBar.addView(resetRole, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         hero.addView(roleBar);
         hero.addView(space(12));
         hero.addView(dataStatusMini());
         root.addView(hero);
 
         root.addView(space(14));
-        root.addView(sectionTitle("لوحة البرامج"));
+        root.addView(sectionTitle("لوحة البرامج — تصميم R2.0.6"));
 
         LinearLayout grid1 = horizontal();
         grid1.addView(dashboardCard("القائمة", "بحث مباشر وبطاقة موظف", PRIMARY));
         grid1.addView(spaceW(10));
-        grid1.addView(dashboardCard("ملاحظات المدير", "نقل، تنسيب، أرشفة", PURPLE));
+        grid1.addView(dashboardCard("ملاحظات المدير", "هوية جهاز وحفظ محلي", PURPLE));
         root.addView(grid1);
 
         root.addView(space(10));
@@ -168,9 +256,31 @@ public class MainActivity extends Activity {
         root.addView(syncBtn);
 
         root.addView(space(12));
-        TextView footer = text("R2.0.5 تحديث فعلي صغير: حفظ ملاحظات المدير محليًا واختبار التثبيت فوق النسخة السابقة.", 12, MUTED, false);
+        TextView footer = text("R2.0.6 تحديث فعلي: تصميم احترافي، أيقونة جديدة، وتثبيت نوع الجهاز بصلاحيات واضحة.", 12, MUTED, false);
         footer.setGravity(Gravity.CENTER);
         root.addView(footer);
+    }
+
+    private LinearLayout premiumHeader(String titleText, String subtitleText) {
+        LinearLayout header = card(22);
+        header.setPadding(dp(18), dp(18), dp(18), dp(18));
+        header.setBackground(round(SOFT_BLUE, 22, Color.rgb(197, 214, 244)));
+        LinearLayout top = horizontal();
+        TextView logo = text("HR", 18, Color.WHITE, true);
+        logo.setGravity(Gravity.CENTER);
+        logo.setPadding(dp(12), dp(8), dp(12), dp(8));
+        logo.setBackground(round(PRIMARY, 18, PRIMARY));
+        top.addView(logo);
+        top.addView(spaceW(10));
+        LinearLayout titles = new LinearLayout(this);
+        titles.setOrientation(LinearLayout.VERTICAL);
+        titles.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        titles.addView(text(titleText, 24, NAVY, true));
+        titles.addView(space(4));
+        titles.addView(text(subtitleText, 13, MUTED, false));
+        top.addView(titles, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        header.addView(top);
+        return header;
     }
 
     private LinearLayout dataStatusMini() {
@@ -187,11 +297,7 @@ public class MainActivity extends Activity {
     private void showEmployeeDirectory() {
         baseScreen();
 
-        LinearLayout header = card(18);
-        header.setPadding(dp(18), dp(18), dp(18), dp(18));
-        header.addView(text("القائمة الرئيسية للموظفين", 22, TEXT, true));
-        header.addView(space(5));
-        header.addView(text("بحث فعلي من بيانات GitHub مع بطاقة موظف أولية ونسخة محلية احتياطية", 13, MUTED, false));
+        LinearLayout header = premiumHeader("القائمة الرئيسية للموظفين", "بحث فعلي من بيانات GitHub مع بطاقة موظف تفصيلية ونسخة محلية احتياطية");
         header.addView(space(12));
         LinearLayout badges = horizontal();
         badges.addView(badge(employees.size() + " موظف", PRIMARY));
@@ -304,7 +410,7 @@ public class MainActivity extends Activity {
         Button choose = outlineButton("اختيار للملاحظات");
         choose.setOnClickListener(v -> {
             selectedEmployee = e;
-            currentRole = "hr_manager";
+            currentRole = ROLE_HR;
             Toast.makeText(this, "تم اختيار الموظف للملاحظات", Toast.LENGTH_SHORT).show();
             showManagerNotes();
         });
@@ -368,7 +474,7 @@ public class MainActivity extends Activity {
         Button note = primaryButton("اختيار الموظف في ملاحظات المدير");
         note.setOnClickListener(v -> {
             selectedEmployee = e;
-            currentRole = "hr_manager";
+            currentRole = ROLE_HR;
             showManagerNotes();
         });
         root.addView(note);
@@ -412,11 +518,7 @@ public class MainActivity extends Activity {
 
     private void showStatus() {
         baseScreen();
-        LinearLayout header = card(18);
-        header.setPadding(dp(18), dp(18), dp(18), dp(18));
-        header.addView(text("حالة النظام", 22, TEXT, true));
-        header.addView(space(6));
-        header.addView(text("تشخيص أولي لنسخة Android Native", 13, MUTED, false));
+        LinearLayout header = premiumHeader("حالة النظام", "تشخيص نسخة Android Native ومزامنة بيانات الموظفين");
         root.addView(header);
         root.addView(space(12));
         LinearLayout box = card(18);
@@ -444,17 +546,11 @@ public class MainActivity extends Activity {
     private void showManagerNotes() {
         baseScreen();
 
-        LinearLayout header = card(18);
-        header.setPadding(dp(18), dp(18), dp(18), dp(18));
-        TextView title = text("ملاحظات مدير الموارد البشرية", 22, TEXT, true);
-        TextView subtitle = text("متابعة النقل، التنسيب، إنهاء التنسيب، والملاحظات الإدارية", 13, MUTED, false);
-        header.addView(title);
-        header.addView(space(5));
-        header.addView(subtitle);
+        LinearLayout header = premiumHeader("ملاحظات مدير الموارد البشرية", "متابعة النقل، التنسيب، إنهاء التنسيب، والملاحظات الإدارية");
         header.addView(space(14));
 
         LinearLayout row = horizontal();
-        row.addView(badge(roleLabel(), currentRole.equals("system_admin") ? PRIMARY : PURPLE));
+        row.addView(badge(roleLabel(), currentRole.equals(ROLE_ADMIN) ? PRIMARY : PURPLE));
         row.addView(spaceW(8));
         row.addView(badge(APP_VERSION + " Native", GREEN));
         header.addView(row);
@@ -464,7 +560,7 @@ public class MainActivity extends Activity {
         root.addView(statsPanel());
         root.addView(space(12));
 
-        if (currentRole.equals("hr_manager")) {
+        if (currentRole.equals(ROLE_HR)) {
             root.addView(managerForm());
             root.addView(space(12));
         }
@@ -615,7 +711,7 @@ public class MainActivity extends Activity {
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
         box.addView(text("سجل الملاحظات", 18, TEXT, true));
         box.addView(space(4));
-        box.addView(text("يتم حفظ الملاحظات وحالة المراجعة محليًا في هذه النسخة حتى بعد إغلاق التطبيق.", 11, MUTED, false));
+        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.0.6.", 11, MUTED, false));
         box.addView(space(8));
 
         HorizontalScrollView hsv = new HorizontalScrollView(this);
@@ -642,7 +738,7 @@ public class MainActivity extends Activity {
         int shown = 0;
         for (ManagerNote n : notes) {
             if (!matchesFilter(n)) continue;
-            if (currentRole.equals("hr_manager") && "reviewed".equals(n.status)) continue;
+            if (currentRole.equals(ROLE_HR) && "reviewed".equals(n.status)) continue;
             notesContainer.addView(noteCard(n));
             notesContainer.addView(space(10));
             shown++;
@@ -676,7 +772,7 @@ public class MainActivity extends Activity {
         }
         c.addView(space(8));
         c.addView(text("مرسلة من: مدير الموارد البشرية — " + n.date, 12, MUTED, false));
-        if (currentRole.equals("system_admin") && "new".equals(n.status)) {
+        if (currentRole.equals(ROLE_ADMIN) && "new".equals(n.status)) {
             c.addView(space(12));
             Button reviewed = primaryButton("تمت المراجعة");
             reviewed.setOnClickListener(v -> {
@@ -918,8 +1014,8 @@ public class MainActivity extends Activity {
     private Button roleButton(String label, String role) {
         Button b = pillButton(label, currentRole.equals(role) ? PRIMARY : Color.WHITE, currentRole.equals(role) ? Color.WHITE : TEXT);
         b.setOnClickListener(v -> {
-            currentRole = role;
-            Toast.makeText(this, "تم اختيار: " + label, Toast.LENGTH_SHORT).show();
+            saveDeviceRole(role);
+            Toast.makeText(this, "تم تثبيت نوع الجهاز: " + label, Toast.LENGTH_SHORT).show();
             showHome();
         });
         return b;
@@ -938,7 +1034,7 @@ public class MainActivity extends Activity {
         if ("ملاحظات المدير".equals(title)) c.setOnClickListener(v -> showManagerNotes());
         if ("القائمة".equals(title)) c.setOnClickListener(v -> showEmployeeDirectory());
         if ("حالة النظام".equals(title)) c.setOnClickListener(v -> showStatus());
-        if ("التقارير".equals(title)) c.setOnClickListener(v -> Toast.makeText(this, "التقارير ستضاف في R2.0.5", Toast.LENGTH_SHORT).show());
+        if ("التقارير".equals(title)) c.setOnClickListener(v -> Toast.makeText(this, "التقارير ستضاف في إصدار لاحق بعد تثبيت ملاحظات المدير", Toast.LENGTH_SHORT).show());
         return c;
     }
 
@@ -1086,7 +1182,7 @@ public class MainActivity extends Activity {
         return GREEN;
     }
 
-    private String roleLabel() { return currentRole.equals("system_admin") ? "مسؤول النظام" : "مدير الموارد البشرية"; }
+    private String roleLabel() { return currentRole.equals(ROLE_ADMIN) ? "مسؤول النظام" : "مدير الموارد البشرية"; }
     private String safe(String v) { return v == null || v.length() == 0 ? "-" : v; }
     private String shortDate(String v) { return v == null || v.length() < 10 ? safe(v) : v.substring(0, 10); }
 
