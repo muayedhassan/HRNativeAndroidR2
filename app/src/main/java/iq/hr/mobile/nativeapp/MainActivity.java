@@ -45,7 +45,7 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "R2.2.0";
+    private static final String APP_VERSION = "R2.3.0";
     private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
     private static final String CACHE_FILE = "employees_cache_r2.json";
     private static final String NOTES_CACHE_FILE = "manager_notes_cache_r2.json";
@@ -287,7 +287,7 @@ public class MainActivity extends Activity {
         root.addView(syncBtn);
 
         root.addView(space(12));
-        TextView footer = text("R2.2.0 يقرّب Native من نسخة الويب: تبويبات رئيسية، فلاتر موظفين، وخط SF Sultan.", 12, MUTED, false);
+        TextView footer = text("R2.3.0 يضيف بحثًا أوضح وبطاقة موظف أقرب لنسخة الويب مع مركز جودة البيانات.", 12, MUTED, false);
         footer.setGravity(Gravity.CENTER);
         root.addView(footer);
     }
@@ -462,7 +462,7 @@ public class MainActivity extends Activity {
         searchCard.setPadding(dp(16), dp(16), dp(16), dp(16));
         searchCard.addView(text("البحث الإداري السريع", 18, TEXT, true));
         searchCard.addView(space(6));
-        searchCard.addView(text("النطاق الحالي: " + employeeDirectoryFilter + "، اكتب حرفين أو أكثر من الاسم أو الرقم الوظيفي أو الشعبة.", 12, MUTED, false));
+        searchCard.addView(text("النطاق الحالي: " + employeeDirectoryFilter + "، اكتب حرفين أو أكثر من الاسم أو الرقم الوظيفي أو الشعبة أو اسم الأم.", 12, MUTED, false));
         searchCard.addView(space(10));
         HorizontalScrollView filterScroll = new HorizontalScrollView(this);
         filterScroll.setHorizontalScrollBarEnabled(false);
@@ -567,18 +567,33 @@ public class MainActivity extends Activity {
         c.setOnClickListener(v -> showEmployeeProfile(e));
 
         LinearLayout top = horizontal();
-        top.addView(badge(e.typeLabel(), "عقد".equals(e.typeLabel()) ? ORANGE : GREEN));
-        top.addView(spaceW(8));
-        top.addView(badge("رقم: " + safe(e.id), PRIMARY));
+        TextView avatar = text(cardInitials(e.name), 18, Color.WHITE, true);
+        avatar.setGravity(Gravity.CENTER);
+        avatar.setBackground(round("عقد".equals(e.typeLabel()) ? ORANGE : PRIMARY, 18, "عقد".equals(e.typeLabel()) ? ORANGE : PRIMARY));
+        top.addView(avatar, new LinearLayout.LayoutParams(dp(54), dp(54)));
+        top.addView(spaceW(10));
+        LinearLayout titleBox = new LinearLayout(this);
+        titleBox.setOrientation(LinearLayout.VERTICAL);
+        titleBox.setGravity(Gravity.RIGHT);
+        titleBox.addView(text(e.name, 18, TEXT, true));
+        titleBox.addView(space(4));
+        titleBox.addView(text(safe(e.jobTitle) + " · " + safe(e.branch), 12, MUTED, false));
+        top.addView(titleBox, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         c.addView(top);
+
+        c.addView(space(12));
+        LinearLayout badges = horizontal();
+        badges.addView(badge(e.typeLabel(), "عقد".equals(e.typeLabel()) ? ORANGE : GREEN));
+        badges.addView(spaceW(8));
+        badges.addView(badge("رقم: " + safe(e.id), PRIMARY));
+        badges.addView(spaceW(8));
+        badges.addView(badge("اكتمال " + profileCompletion(e) + "%", profileCompletion(e) >= 75 ? GREEN : ORANGE));
+        c.addView(badges);
+        c.addView(space(9));
+        c.addView(text("الدرجة/المرحلة: " + safe(e.grade) + " / " + safe(e.step), 13, TEXT, false));
+        c.addView(text("التحصيل: " + safe(e.education) + " · التعيين: " + shortDate(e.hireDate), 13, MUTED, false));
         c.addView(space(8));
-        c.addView(text(e.name, 18, TEXT, true));
-        c.addView(space(7));
-        c.addView(text("الشعبة: " + safe(e.branch), 13, MUTED, false));
-        c.addView(text("العنوان الوظيفي: " + safe(e.jobTitle), 13, MUTED, false));
-        c.addView(text("الدرجة/المرحلة: " + safe(e.grade) + " / " + safe(e.step), 13, MUTED, false));
-        c.addView(text("التحصيل: " + safe(e.education), 13, MUTED, false));
-        c.addView(text("تاريخ التعيين: " + shortDate(e.hireDate), 13, MUTED, false));
+        c.addView(text("اضغط على البطاقة لعرض ملف الموظف الكامل ومركز النواقص.", 12, PRIMARY, true));
         c.addView(space(10));
 
         LinearLayout actions = horizontal();
@@ -606,50 +621,54 @@ public class MainActivity extends Activity {
     private void showEmployeeProfile(Employee e) {
         baseScreen();
 
-        LinearLayout header = card(20);
-        header.setPadding(dp(18), dp(18), dp(18), dp(18));
-        LinearLayout top = horizontal();
-        top.addView(badge(e.typeLabel(), "عقد".equals(e.typeLabel()) ? ORANGE : GREEN));
-        top.addView(spaceW(8));
-        top.addView(badge("رقم وظيفي: " + safe(e.id), PRIMARY));
-        header.addView(top);
-        header.addView(space(10));
-        header.addView(text(e.name, 22, TEXT, true));
-        header.addView(space(6));
-        header.addView(text(safe(e.branch), 14, MUTED, false));
-        header.addView(space(6));
-        header.addView(text(safe(e.jobTitle), 14, MUTED, false));
-        root.addView(header);
+        root.addView(employeeProfileHero(e));
 
         root.addView(space(12));
-        root.addView(infoSection("المعلومات الوظيفية",
+        LinearLayout metrics1 = horizontal();
+        metrics1.addView(profileMetric("اكتمال الملف", profileCompletion(e) + "%", profileCompletion(e) >= 75 ? GREEN : ORANGE));
+        metrics1.addView(spaceW(8));
+        metrics1.addView(profileMetric("النواقص", String.valueOf(profileMissingCount(e)), profileMissingCount(e) == 0 ? GREEN : RED));
+        root.addView(metrics1);
+        root.addView(space(8));
+        LinearLayout metrics2 = horizontal();
+        metrics2.addView(profileMetric("الرقم الوظيفي", safe(e.id), PRIMARY));
+        metrics2.addView(spaceW(8));
+        metrics2.addView(profileMetric("نوع التوظيف", e.typeLabel(), "عقد".equals(e.typeLabel()) ? ORANGE : GREEN));
+        root.addView(metrics2);
+
+        root.addView(space(12));
+        root.addView(dataQualityCard(e));
+
+        root.addView(space(10));
+        root.addView(infoSection("البيانات الأساسية",
+                infoRow("الاسم الكامل", safe(e.name))
+                        + infoRow("اسم الأم", safe(e.motherName))
+                        + infoRow("الجنس", safe(e.gender))
+                        + infoRow("تاريخ الولادة", shortDate(e.birthDate))
+        ));
+
+        root.addView(space(10));
+        root.addView(infoSection("البيانات الوظيفية",
                 infoRow("الشعبة", safe(e.branch))
                         + infoRow("العنوان الوظيفي", safe(e.jobTitle))
                         + infoRow("الحالة", safe(e.type))
                         + infoRow("الدرجة", safe(e.grade))
                         + infoRow("المرحلة", safe(e.step))
                         + infoRow("الراتب", formatSalary(e.salary))
+                        + infoRow("تاريخ التعيين", shortDate(e.hireDate))
         ));
 
         root.addView(space(10));
-        root.addView(infoSection("المعلومات الشخصية والهوية",
-                infoRow("اسم الأم", safe(e.motherName))
-                        + infoRow("الجنس", safe(e.gender))
-                        + infoRow("رقم الهوية", safe(e.identityNo))
+        root.addView(infoSection("الهوية الشخصية",
+                infoRow("رقم الهوية", safe(e.identityNo))
                         + infoRow("جهة الإصدار", safe(e.identityIssuer))
                         + infoRow("تاريخ الإصدار", shortDate(e.identityIssueDate))
-                        + infoRow("تاريخ الولادة", shortDate(e.birthDate))
         ));
 
         root.addView(space(10));
-        root.addView(infoSection("التحصيل والتخصص",
+        root.addView(infoSection("معلومات إضافية",
                 infoRow("التحصيل", safe(e.education))
                         + infoRow("الاختصاص", safe(e.specialization))
-        ));
-
-        root.addView(space(10));
-        root.addView(infoSection("التعيين والملاحظات",
-                infoRow("تاريخ التعيين", shortDate(e.hireDate))
                         + infoRow("آخر تحديث للبيانات", shortDate(e.sourceUpdatedAt))
                         + infoRow("ملاحظات", safe(e.notes))
         ));
@@ -673,6 +692,140 @@ public class MainActivity extends Activity {
         Button backHome = outlineButton("الرجوع إلى الرئيسية");
         backHome.setOnClickListener(v -> showHome());
         root.addView(backHome);
+    }
+
+    private LinearLayout employeeProfileHero(Employee e) {
+        LinearLayout header = card(20);
+        header.setPadding(dp(18), dp(18), dp(18), dp(18));
+        header.setBackground(round(NAVY, 20, NAVY));
+
+        LinearLayout top = horizontal();
+        TextView avatar = text(cardInitials(e.name), 22, NAVY, true);
+        avatar.setGravity(Gravity.CENTER);
+        avatar.setBackground(round(GOLD, 20, GOLD));
+        top.addView(avatar, new LinearLayout.LayoutParams(dp(68), dp(68)));
+        top.addView(spaceW(12));
+
+        LinearLayout titleBox = new LinearLayout(this);
+        titleBox.setOrientation(LinearLayout.VERTICAL);
+        titleBox.setGravity(Gravity.RIGHT);
+        titleBox.addView(text(e.name, 23, Color.WHITE, true));
+        titleBox.addView(space(5));
+        titleBox.addView(text(safe(e.jobTitle) + " · " + safe(e.branch), 13, Color.rgb(207, 226, 244), false));
+        top.addView(titleBox, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        header.addView(top);
+
+        header.addView(space(14));
+        LinearLayout badges = horizontal();
+        badges.addView(lightBadge(e.typeLabel(), "عقد".equals(e.typeLabel()) ? ORANGE : GREEN));
+        badges.addView(spaceW(8));
+        badges.addView(lightBadge("رقم وظيفي: " + safe(e.id), SOFT_BLUE));
+        badges.addView(spaceW(8));
+        badges.addView(lightBadge("ملف ويب داخل Native", SOFT_GOLD));
+        header.addView(badges);
+        return header;
+    }
+
+    private LinearLayout profileMetric(String label, String value, int accent) {
+        LinearLayout c = card(16);
+        c.setPadding(dp(12), dp(12), dp(12), dp(12));
+        c.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        TextView v = text(value, 22, accent, true);
+        v.setGravity(Gravity.CENTER);
+        if (hasDigit(value)) {
+            v.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
+        } else {
+            v.setTypeface(titleTypeface == null ? Typeface.DEFAULT_BOLD : titleTypeface, Typeface.BOLD);
+        }
+        TextView l = text(label, 12, MUTED, false);
+        l.setGravity(Gravity.CENTER);
+        c.addView(v);
+        c.addView(l);
+        return c;
+    }
+
+    private LinearLayout dataQualityCard(Employee e) {
+        LinearLayout box = card(18);
+        box.setPadding(dp(16), dp(14), dp(16), dp(14));
+        box.addView(text("مركز جودة البيانات", 18, TEXT, true));
+        box.addView(space(6));
+        int missing = profileMissingCount(e);
+        String state = missing == 0 ? "الملف مكتمل في الحقول الأساسية المتوفرة." : "نواقص تحتاج مراجعة: " + missing;
+        box.addView(text(state, 13, missing == 0 ? GREEN : RED, true));
+        box.addView(space(8));
+        box.addView(text(missingFieldsText(e), 13, TEXT, false));
+        box.addView(space(8));
+        box.addView(text("هذا القسم يقرب Native من مركز النواقص الموجود في نسخة الويب، ويجعل جودة الملف واضحة داخل بطاقة الموظف.", 12, MUTED, false));
+        return box;
+    }
+
+    private int profileCompletion(Employee e) {
+        String[] values = {
+                e.id, e.name, e.branch, e.type, e.jobTitle, e.grade, e.step, e.salary,
+                e.education, e.motherName, e.identityNo, e.hireDate, e.gender,
+                e.identityIssueDate, e.identityIssuer, e.specialization, e.birthDate
+        };
+        int filled = 0;
+        for (String value : values) {
+            if (!isBlankValue(value)) filled++;
+        }
+        return Math.round((filled * 100f) / values.length);
+    }
+
+    private int profileMissingCount(Employee e) {
+        return missingFieldLabels(e).size();
+    }
+
+    private String missingFieldsText(Employee e) {
+        List<String> missing = missingFieldLabels(e);
+        if (missing.isEmpty()) return "لا توجد نواقص أساسية ظاهرة حاليًا.";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < missing.size(); i++) {
+            if (i > 0) sb.append("، ");
+            sb.append(missing.get(i));
+        }
+        return sb.toString();
+    }
+
+    private List<String> missingFieldLabels(Employee e) {
+        List<String> missing = new ArrayList<>();
+        if (isBlankValue(e.id)) missing.add("الرقم الوظيفي");
+        if (isBlankValue(e.branch)) missing.add("الشعبة");
+        if (isBlankValue(e.jobTitle)) missing.add("العنوان الوظيفي");
+        if (isBlankValue(e.grade)) missing.add("الدرجة");
+        if (isBlankValue(e.step)) missing.add("المرحلة");
+        if (isBlankValue(e.education)) missing.add("التحصيل");
+        if (isBlankValue(e.motherName)) missing.add("اسم الأم");
+        if (isBlankValue(e.identityNo)) missing.add("رقم الهوية");
+        if (isBlankValue(e.hireDate)) missing.add("تاريخ التعيين");
+        return missing;
+    }
+
+    private boolean isBlankValue(String value) {
+        if (value == null) return true;
+        String v = value.trim();
+        return v.length() == 0 || "-".equals(v) || "null".equalsIgnoreCase(v);
+    }
+
+    private boolean hasDigit(String value) {
+        if (value == null) return false;
+        for (int i = 0; i < value.length(); i++) {
+            if (Character.isDigit(value.charAt(i))) return true;
+        }
+        return false;
+    }
+
+    private String cardInitials(String name) {
+        String clean = safe(name).replace("-", "").trim();
+        if (clean.length() == 0) return "HR";
+        String[] parts = clean.split("\\s+");
+        StringBuilder out = new StringBuilder();
+        for (String part : parts) {
+            if (part.length() == 0) continue;
+            out.append(part.charAt(0));
+            if (out.length() == 2) break;
+        }
+        return out.length() == 0 ? "HR" : out.toString();
     }
 
     private LinearLayout infoSection(String title, String body) {
@@ -803,9 +956,9 @@ public class MainActivity extends Activity {
         root.addView(space(12));
         LinearLayout release = card(18);
         release.setPadding(dp(16), dp(14), dp(16), dp(14));
-        release.addView(text("محتوى R2.2.0", 18, TEXT, true));
+        release.addView(text("محتوى R2.3.0", 18, TEXT, true));
         release.addView(space(8));
-        release.addView(text("• إضافة خط SF Sultan للنصوص العربية\n• تبويبات رئيسية مثل نسخة الويب: الدائميين، العقود، الإدارة\n• فلاتر قائمة الموظفين حسب نوع التوظيف\n• استمرار لوحة المسؤول ومركز التحديث\n• تقريب أكبر بين Native وواجهة الويب", 13, TEXT, false));
+        release.addView(text("• إعادة تصميم نتائج البحث ببطاقات موظفين أوضح\n• بطاقة موظف احترافية بهيدر رسمي وأحرف مختصرة\n• مؤشرات اكتمال الملف والنواقص\n• مركز جودة البيانات داخل بطاقة الموظف\n• استمرار خطوط SF Sultan وYa Modern Pro وStencil", 13, TEXT, false));
         root.addView(release);
 
         root.addView(space(12));
@@ -989,7 +1142,7 @@ public class MainActivity extends Activity {
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
         box.addView(text("سجل الملاحظات", 18, TEXT, true));
         box.addView(space(4));
-        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.2.0.", 11, MUTED, false));
+        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.3.0.", 11, MUTED, false));
         box.addView(space(8));
 
         HorizontalScrollView hsv = new HorizontalScrollView(this);
