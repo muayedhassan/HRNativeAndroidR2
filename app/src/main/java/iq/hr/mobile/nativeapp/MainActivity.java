@@ -52,8 +52,8 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "R2.9.0";
-    private static final int APP_VERSION_CODE = 19;
+    private static final String APP_VERSION = "R2.10.0";
+    private static final int APP_VERSION_CODE = 20;
     private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
     private static final String UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/muayedhassan/HRNativeAndroidR2/main/latest.json";
     private static final String UPDATE_MANIFEST_URL_FALLBACK = "https://raw.githubusercontent.com/muayedhassan/HRNativeAndroidR2/master/latest.json";
@@ -280,7 +280,7 @@ public class MainActivity extends Activity {
         root.addView(homeActionBar());
 
         root.addView(space(10));
-        TextView footer = text("R2.9.0 Operations Dashboard: غرفة سيطرة، جودة بيانات، توزيع شعب، وملاحظات مباشرة.", 11, MUTED, false);
+        TextView footer = text("R2.10.0 Manager Workflow Pro: غرفة سيطرة وملاحظات مدير بتجربة عمل جديدة.", 11, MUTED, false);
         footer.setGravity(Gravity.CENTER);
         root.addView(footer);
     }
@@ -1723,9 +1723,9 @@ public class MainActivity extends Activity {
         root.addView(space(12));
         LinearLayout release = card(18);
         release.setPadding(dp(16), dp(14), dp(16), dp(14));
-        release.addView(text("محتوى R2.9.0", 18, TEXT, true));
+        release.addView(text("محتوى R2.10.0", 18, TEXT, true));
         release.addView(space(8));
-        release.addView(text("• غرفة سيطرة جديدة في الشاشة الرئيسية\n• مركز جودة بيانات مع نسبة اكتمال عامة\n• توزيع الشعب الأكثر ظهورًا مع أشرطة تقدم\n• آخر ملاحظات المدير في الرئيسية\n• إبقاء بطاقة الموظف R2.8.0 والتحديث الذكي", 13, TEXT, false));
+        release.addView(text("• شاشة ملاحظات مدير جديدة بنمط سير عمل\n• لوحة خطوات: الموظف، الحركة، السجل\n• بطاقات اختيار الحركة بدل الأزرار الصغيرة\n• بطاقة موظف مختار أوضح داخل نموذج الإرسال\n• بطاقات سجل الملاحظات أصبحت أوضح للمراجعة", 13, TEXT, false));
         root.addView(release);
 
         root.addView(space(12));
@@ -1810,6 +1810,8 @@ public class MainActivity extends Activity {
         root.addView(space(12));
         root.addView(statsPanel());
         root.addView(space(12));
+        root.addView(managerWorkflowBoard());
+        root.addView(space(12));
 
         if (currentRole.equals(ROLE_HR)) {
             root.addView(managerForm());
@@ -1854,12 +1856,59 @@ public class MainActivity extends Activity {
         return grid;
     }
 
+    private LinearLayout managerWorkflowBoard() {
+        LinearLayout box = card(18);
+        box.setPadding(dp(12), dp(12), dp(12), dp(12));
+        box.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(8, 17, 48), 18, Color.rgb(42, 56, 118)));
+
+        LinearLayout top = horizontal();
+        top.addView(iconView(R.drawable.ic_hr_notes, PURPLE, Color.rgb(22, 34, 83), dp(40)));
+        top.addView(spaceW(9));
+        LinearLayout labels = new LinearLayout(this);
+        labels.setOrientation(LinearLayout.VERTICAL);
+        labels.addView(text("لوحة سير الملاحظات", 16, TEXT, true));
+        labels.addView(text("اختيار، حركة، إرسال، مراجعة", 10, MUTED, false));
+        top.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        box.addView(top);
+        box.addView(space(10));
+
+        LinearLayout steps = horizontal();
+        steps.addView(workflowStep("1", "الموظف", selectedEmployee == null ? "لم يحدد" : selectedEmployee.name, selectedEmployee == null ? ORANGE : GREEN));
+        steps.addView(spaceW(7));
+        steps.addView(workflowStep("2", "الحركة", currentMovement, movementColor(currentMovement)));
+        steps.addView(spaceW(7));
+        steps.addView(workflowStep("3", "السجل", countNewNotes() + " جديد", countNewNotes() == 0 ? GREEN : RED));
+        box.addView(steps);
+        box.addView(space(10));
+        box.addView(progressStrip("جاهزية سير العمل", selectedEmployee == null && currentRole.equals(ROLE_HR) ? 55 : 90, selectedEmployee == null && currentRole.equals(ROLE_HR) ? ORANGE : GREEN));
+        return box;
+    }
+
+    private LinearLayout workflowStep(String number, String title, String value, int accent) {
+        LinearLayout step = card(13);
+        step.setPadding(dp(8), dp(7), dp(8), dp(7));
+        step.setBackground(round(Color.rgb(16, 27, 78), 13, Color.rgb(38, 52, 100)));
+        step.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        TextView n = text(number, 16, accent, true);
+        n.setGravity(Gravity.CENTER);
+        n.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
+        TextView t = text(title, 9, MUTED, false);
+        t.setGravity(Gravity.CENTER);
+        TextView v = text(value, 10, TEXT, true);
+        v.setGravity(Gravity.CENTER);
+        step.addView(n);
+        step.addView(t);
+        step.addView(v);
+        return step;
+    }
+
     private LinearLayout managerForm() {
         LinearLayout form = card(18);
         form.setPadding(dp(16), dp(16), dp(16), dp(16));
-        form.addView(text("إرسال ملاحظة جديدة", 18, TEXT, true));
+        form.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(8, 17, 48), 18, BORDER));
+        form.addView(text("محطة إرسال الملاحظة", 18, TEXT, true));
         form.addView(space(8));
-        form.addView(text("ابحث عن الموظف بكتابة حرفين أو أكثر. عند الاختيار تُجلب الشعبة الحالية من قاعدة البيانات.", 12, MUTED, false));
+        form.addView(text("ابحث عن الموظف، اختر نوع الحركة، ثم أرسل الملاحظة. يتم حفظ كل شيء محليًا حالياً.", 12, MUTED, false));
         form.addView(space(12));
 
         EditText search = editText("اكتب اسم الموظف للبحث...");
@@ -1871,22 +1920,12 @@ public class MainActivity extends Activity {
         results.setOrientation(LinearLayout.VERTICAL);
         form.addView(results);
 
-        TextView selected = text(selectedEmployee == null ? "لم يتم اختيار موظف" : "الموظف المختار: " + selectedEmployee.name + "\nالشعبة الحالية: " + selectedEmployee.branch, 13, selectedEmployee == null ? MUTED : TEXT, false);
-        selected.setPadding(dp(4), dp(8), dp(4), dp(8));
+        TextView selected = text(selectedEmployee == null ? "لم يتم اختيار موظف" : "الموظف المختار: " + selectedEmployee.name + "\nالشعبة الحالية: " + selectedEmployee.branch + "\nنوع التوظيف: " + selectedEmployee.typeLabel(), 13, selectedEmployee == null ? MUTED : TEXT, false);
+        selected.setPadding(dp(10), dp(9), dp(10), dp(9));
+        selected.setBackground(round(Color.rgb(16, 27, 78), 13, selectedEmployee == null ? BORDER : GREEN));
         form.addView(selected);
-
-        LinearLayout chips = chipsBar();
-        String[] movements = {"ملاحظة", "نقل", "تنسيب", "إنهاء تنسيب"};
-        for (String m : movements) {
-            Button b = chipButton(m, m.equals(currentMovement));
-            b.setOnClickListener(v -> {
-                currentMovement = ((Button) v).getText().toString();
-                showManagerNotes();
-            });
-            chips.addView(b);
-            chips.addView(spaceW(7));
-        }
-        form.addView(chips);
+        form.addView(space(10));
+        form.addView(movementCommandDeck());
         form.addView(space(10));
 
         EditText note = editText("اكتب تفاصيل الملاحظة...");
@@ -1940,8 +1979,9 @@ public class MainActivity extends Activity {
                                 search.setText(e.name);
                                 search.setSelection(search.getText().length());
                                 results.removeAllViews();
-                                selected.setText("الموظف المختار: " + e.name + "\nالشعبة الحالية: " + e.branch);
+                                selected.setText("الموظف المختار: " + e.name + "\nالشعبة الحالية: " + e.branch + "\nنوع التوظيف: " + e.typeLabel());
                                 selected.setTextColor(TEXT);
+                                selected.setBackground(round(Color.rgb(16, 27, 78), 13, GREEN));
                             });
                             results.addView(item);
                             results.addView(space(6));
@@ -1957,12 +1997,59 @@ public class MainActivity extends Activity {
         return form;
     }
 
+    private LinearLayout movementCommandDeck() {
+        LinearLayout deck = new LinearLayout(this);
+        deck.setOrientation(LinearLayout.VERTICAL);
+        deck.addView(text("نوع الحركة", 14, TEXT, true));
+        deck.addView(space(7));
+
+        LinearLayout r1 = horizontal();
+        r1.addView(movementCard("ملاحظة", "توجيه أو تنبيه إداري", R.drawable.ic_hr_notes));
+        r1.addView(spaceW(7));
+        r1.addView(movementCard("نقل", "تغيير شعبة الموظف", R.drawable.ic_hr_people));
+        deck.addView(r1);
+
+        deck.addView(space(7));
+        LinearLayout r2 = horizontal();
+        r2.addView(movementCard("تنسيب", "تكليف مؤقت", R.drawable.ic_hr_admin));
+        r2.addView(spaceW(7));
+        r2.addView(movementCard("إنهاء تنسيب", "إغلاق التكليف المؤقت", R.drawable.ic_hr_quality));
+        deck.addView(r2);
+        return deck;
+    }
+
+    private LinearLayout movementCard(String title, String subtitle, int iconRes) {
+        boolean active = title.equals(currentMovement);
+        int accent = movementColor(title);
+        LinearLayout c = card(14);
+        c.setPadding(dp(9), dp(9), dp(9), dp(9));
+        c.setMinimumHeight(dp(88));
+        c.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        c.setBackground(gradient(active ? Color.rgb(24, 39, 101) : Color.rgb(16, 27, 78), Color.rgb(8, 17, 48), 14, active ? accent : Color.rgb(38, 52, 100)));
+        c.setOnClickListener(v -> {
+            currentMovement = title;
+            showManagerNotes();
+        });
+        LinearLayout top = horizontal();
+        top.addView(iconView(iconRes, active ? Color.WHITE : accent, active ? accent : Color.rgb(22, 34, 83), dp(34)));
+        top.addView(spaceW(7));
+        LinearLayout labels = new LinearLayout(this);
+        labels.setOrientation(LinearLayout.VERTICAL);
+        labels.addView(text(title, 13, active ? Color.WHITE : TEXT, true));
+        labels.addView(text(subtitle, 9, active ? Color.rgb(220, 232, 255) : MUTED, false));
+        top.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        c.addView(top);
+        c.addView(space(8));
+        c.addView(text(active ? "محدد الآن" : "اختيار", 10, active ? accent : MUTED, true));
+        return c;
+    }
+
     private LinearLayout notesToolbar() {
         LinearLayout box = card(18);
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
         box.addView(text("سجل الملاحظات", 18, TEXT, true));
         box.addView(space(4));
-        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.9.0.", 11, MUTED, false));
+        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.10.0.", 11, MUTED, false));
         box.addView(space(8));
 
         HorizontalScrollView hsv = new HorizontalScrollView(this);
@@ -2010,10 +2097,13 @@ public class MainActivity extends Activity {
     private LinearLayout noteCard(ManagerNote n) {
         LinearLayout c = card(18);
         c.setPadding(dp(14), dp(14), dp(14), dp(14));
+        c.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(8, 17, 48), 18, "new".equals(n.status) ? movementColor(n.type) : BORDER));
         LinearLayout top = horizontal();
         top.addView(badge(n.type, movementColor(n.type)));
         top.addView(spaceW(8));
         top.addView(badge("new".equals(n.status) ? "جديد" : "تمت المراجعة", "new".equals(n.status) ? ORANGE : GREEN));
+        top.addView(spaceW(8));
+        top.addView(lightBadge(n.id, Color.rgb(27, 43, 102)));
         c.addView(top);
         c.addView(space(8));
         c.addView(text(n.employee, 17, TEXT, true));

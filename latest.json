@@ -1,7 +1,7 @@
 {
-  "versionCode": 19,
-  "versionName": "R2.9.0",
-  "artifactName": "HRNativeAndroid-R2.9.0-operations-dashboard-signed-apk",
+  "versionCode": 20,
+  "versionName": "R2.10.0",
+  "artifactName": "HRNativeAndroid-R2.10.0-manager-workflow-pro-signed-apk",
   "apkUrl": "",
-  "notes": "R2.9.0 يضيف غرفة سيطرة رئيسية مع جودة البيانات، توزيع الشعب، أحدث الملاحظات، وبحث سريع. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
+  "notes": "R2.10.0 يضيف شاشة ملاحظات مدير احترافية مع لوحة سير عمل، بطاقات حركة، وبطاقات سجل محسنة. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
 }
