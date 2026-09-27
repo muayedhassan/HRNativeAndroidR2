@@ -1,7 +1,7 @@
 {
-  "versionCode": 22,
-  "versionName": "R2.12.0",
-  "artifactName": "HRNativeAndroid-R2.12.0-mega-workspace-suite-signed-apk",
+  "versionCode": 23,
+  "versionName": "R2.13.0",
+  "artifactName": "HRNativeAndroid-R2.13.0-five-suite-upgrade-signed-apk",
   "apkUrl": "",
-  "notes": "R2.12.0 يدمج ثلاث ترقيات كبيرة: سجل الموظفين Pro بفلاتر النوع والشعبة، ملف الموظف 360 مع تبويب المسار، ولوحة إدارة وجودة موسعة. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
+  "notes": "R2.13.0 يضيف خمس حزم تحديثات واضحة: Home Command Center، Directory Board، Executive 360+، Notes Studio، وSystem Health Cockpit. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
 }
