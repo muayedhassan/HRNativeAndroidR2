@@ -1,7 +1,7 @@
 {
-  "versionCode": 21,
-  "versionName": "R2.11.0",
-  "artifactName": "HRNativeAndroid-R2.11.0-native-web-parity-workspace-signed-apk",
+  "versionCode": 22,
+  "versionName": "R2.12.0",
+  "artifactName": "HRNativeAndroid-R2.12.0-mega-workspace-suite-signed-apk",
   "apkUrl": "",
-  "notes": "R2.11.0 يضيف Workspace Native أقرب للويب: تنقل موحد، مركز جودة مستقل، فلتر نواقص، وحالة نظام أوسع. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
+  "notes": "R2.12.0 يدمج ثلاث ترقيات كبيرة: سجل الموظفين Pro بفلاتر النوع والشعبة، ملف الموظف 360 مع تبويب المسار، ولوحة إدارة وجودة موسعة. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
 }
