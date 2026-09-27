@@ -1,7 +1,7 @@
 {
-  "versionCode": 24,
-  "versionName": "R2.14.0",
-  "artifactName": "HRNativeAndroid-R2.14.0-web-layout-parity-signed-apk",
+  "versionCode": 25,
+  "versionName": "R2.15.0",
+  "artifactName": "HRNativeAndroid-R2.15.0-screenshot-home-match-signed-apk",
   "apkUrl": "",
-  "notes": "R2.14.0 يقرّب الواجهة الرئيسية من نسخة الويب: قسم نطاق السجل وقسم أقسام البرنامج مع كروت واضحة ومسار تنقل أبسط. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
+  "notes": "R2.15.0 يعيد بناء الرئيسية اعتمادًا على الصورة المرفوعة: هيدر أزرق مطابق، نطاق السجل بثلاث كروت، شبكة أقسام البرنامج، وكرت الخدمة المميز. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
 }
