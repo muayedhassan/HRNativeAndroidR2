@@ -1,7 +1,7 @@
 {
-  "versionCode": 25,
-  "versionName": "R2.15.0",
-  "artifactName": "HRNativeAndroid-R2.15.0-screenshot-home-match-signed-apk",
+  "versionCode": 26,
+  "versionName": "R2.16.0",
+  "artifactName": "HRNativeAndroid-R2.16.0-web-card-interaction-signed-apk",
   "apkUrl": "",
-  "notes": "R2.15.0 يعيد بناء الرئيسية اعتمادًا على الصورة المرفوعة: هيدر أزرق مطابق، نطاق السجل بثلاث كروت، شبكة أقسام البرنامج، وكرت الخدمة المميز. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
+  "notes": "R2.16.0 يضيف تفاعل كروت مطابق للويب: اختيار النطاق والقسم، تمييز الكرت المختار، إخفاء/إظهار الشريط العلوي، وواجهة القائمة للدائمين مع البحث وقائمة الموظفين. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
 }

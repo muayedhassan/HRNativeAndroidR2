@@ -52,8 +52,8 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "R2.15.0";
-    private static final int APP_VERSION_CODE = 25;
+    private static final String APP_VERSION = "R2.16.0";
+    private static final int APP_VERSION_CODE = 26;
     private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
     private static final String UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/muayedhassan/HRNativeAndroidR2/main/latest.json";
     private static final String UPDATE_MANIFEST_URL_FALLBACK = "https://raw.githubusercontent.com/muayedhassan/HRNativeAndroidR2/master/latest.json";
@@ -98,9 +98,12 @@ public class MainActivity extends Activity {
     private Typeface titleTypeface;
     private Typeface bodyTypeface;
     private Typeface numberTypeface;
-    private String employeeDirectoryFilter = "الكل";
+    private String employeeDirectoryFilter = "دائم";
     private String employeeBranchFilter = "كل الشعب";
     private String profileTab = "وظيفة";
+    private boolean homeChromeHidden = false;
+    private String homeActiveScope = "الدائمون";
+    private String homeActiveModule = "القائمة";
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final ExecutorService io = Executors.newSingleThreadExecutor();
 
@@ -260,16 +263,23 @@ public class MainActivity extends Activity {
     private void showHome() {
         baseScreen();
 
+        if (homeChromeHidden) {
+            root.addView(homeCompactTopBar());
+            root.addView(space(10));
+            root.addView(homeActiveContent());
+            return;
+        }
+
         root.addView(webScreenshotHero());
         root.addView(space(12));
         root.addView(webScreenshotScopeSection());
         root.addView(space(12));
         root.addView(webScreenshotProgramGrid());
         root.addView(space(12));
-        root.addView(serviceCalculatorDock());
+        root.addView(homeSelectedDock());
 
         root.addView(space(10));
-        TextView footer = text("R2.15.0 Screenshot Match: الرئيسية مبنية على شكل الصورة المرفوعة من نسخة الويب.", 11, MUTED, false);
+        TextView footer = text("R2.16.0 Web Card Interaction: اختيار الكرت وإخفاء الشريط العلوي يعملان مثل الصور المرفوعة.", 11, MUTED, false);
         footer.setGravity(Gravity.CENTER);
         root.addView(footer);
     }
@@ -412,28 +422,32 @@ public class MainActivity extends Activity {
 
     private LinearLayout webScreenshotScopeSection() {
         LinearLayout box = card(22);
-        box.setPadding(dp(16), dp(16), dp(16), dp(16));
+        box.setPadding(dp(14), dp(14), dp(14), dp(14));
         box.setBackground(gradient(Color.rgb(7, 18, 58), Color.rgb(5, 13, 40), 22, Color.rgb(31, 58, 110)));
 
         box.addView(screenshotSectionTitle("نطاق السجل", R.drawable.ic_hr_people, Color.rgb(125, 211, 252)));
-        box.addView(space(14));
+        box.addView(space(12));
 
         LinearLayout row = horizontal();
-        row.addView(screenshotScopeCard("دائمون", String.valueOf(permCount), R.drawable.ic_hr_profile, GOLD, true, v -> {
-            employeeDirectoryFilter = "دائم";
-            employeeBranchFilter = "كل الشعب";
-            showEmployeeDirectory();
-        }));
+        row.addView(screenshotScopeCard("دائمون", String.valueOf(permCount), R.drawable.ic_hr_profile, GOLD, "الدائمون".equals(homeActiveScope), v -> selectHomeScope("الدائمون", "دائم")));
         row.addView(spaceW(8));
-        row.addView(screenshotScopeCard("عقود", String.valueOf(contCount), R.drawable.ic_hr_quality, MUTED, false, v -> {
-            employeeDirectoryFilter = "عقد";
-            employeeBranchFilter = "كل الشعب";
-            showEmployeeDirectory();
-        }));
+        row.addView(screenshotScopeCard("عقود", String.valueOf(contCount), R.drawable.ic_hr_quality, MUTED, "العقود".equals(homeActiveScope), v -> selectHomeScope("العقود", "عقد")));
         row.addView(spaceW(8));
-        row.addView(screenshotScopeCard("إدارة", "", R.drawable.ic_hr_admin, MUTED, false, v -> showAdminDashboard()));
+        row.addView(screenshotScopeCard("إدارة", "", R.drawable.ic_hr_admin, MUTED, "الإدارة".equals(homeActiveScope), v -> selectHomeScope("الإدارة", "الكل")));
         box.addView(row);
         return box;
+    }
+
+    private void selectHomeScope(String label, String filter) {
+        homeActiveScope = label;
+        employeeDirectoryFilter = filter;
+        employeeBranchFilter = "كل الشعب";
+        showHome();
+    }
+
+    private void selectHomeModule(String label) {
+        homeActiveModule = label;
+        showHome();
     }
 
     private LinearLayout screenshotSectionTitle(String title, int iconRes, int accent) {
@@ -450,8 +464,8 @@ public class MainActivity extends Activity {
 
     private LinearLayout screenshotScopeCard(String label, String value, int iconRes, int accent, boolean selected, View.OnClickListener listener) {
         LinearLayout c = card(18);
-        c.setPadding(dp(8), dp(9), dp(8), dp(9));
-        c.setMinimumHeight(dp(70));
+        c.setPadding(dp(8), dp(8), dp(8), dp(8));
+        c.setMinimumHeight(dp(62));
         c.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         c.setBackground(gradient(selected ? Color.rgb(52, 54, 67) : Color.rgb(14, 29, 70), Color.rgb(10, 22, 55), 18, selected ? GOLD : Color.rgb(39, 61, 105)));
         c.setOnClickListener(listener);
@@ -476,42 +490,34 @@ public class MainActivity extends Activity {
 
     private LinearLayout webScreenshotProgramGrid() {
         LinearLayout box = card(22);
-        box.setPadding(dp(16), dp(16), dp(16), dp(16));
+        box.setPadding(dp(14), dp(14), dp(14), dp(14));
         box.setBackground(gradient(Color.rgb(7, 18, 58), Color.rgb(5, 13, 40), 22, Color.rgb(31, 58, 110)));
 
         box.addView(screenshotSectionTitle("أقسام البرنامج", R.drawable.ic_hr_admin, Color.rgb(125, 211, 252)));
-        box.addView(space(14));
+        box.addView(space(12));
 
         box.addView(programGridRow(
-                screenshotProgramCard("ملاحظات المدير", "مشتركة", R.drawable.ic_hr_notes, 0, false, v -> showManagerNotes()),
-                screenshotProgramCard("القائمة", "سجل الموظفين", R.drawable.ic_hr_search, 0, false, v -> {
-                    employeeDirectoryFilter = "الكل";
-                    employeeBranchFilter = "كل الشعب";
-                    showEmployeeDirectory();
-                })
+                screenshotProgramCard("ملاحظات المدير", "مشتركة", R.drawable.ic_hr_notes, 0, "ملاحظات المدير".equals(homeActiveModule), v -> selectHomeModule("ملاحظات المدير")),
+                screenshotProgramCard("القائمة", "سجل الموظفين", R.drawable.ic_hr_search, 0, "القائمة".equals(homeActiveModule), v -> selectHomeModule("القائمة"))
         ));
         box.addView(space(10));
         box.addView(programGridRow(
-                screenshotProgramCard("آخر التحديثات", "الجديد والمراجعة", R.drawable.ic_hr_update, 0, false, v -> showUpdateCenter()),
-                screenshotProgramCard("التنبيهات", "ملاحظات مهمة", R.drawable.ic_hr_sync, countNewNotes(), false, v -> showManagerNotes())
+                screenshotProgramCard("آخر التحديثات", "الجديد والمراجعة", R.drawable.ic_hr_update, 0, "آخر التحديثات".equals(homeActiveModule), v -> selectHomeModule("آخر التحديثات")),
+                screenshotProgramCard("التنبيهات", "ملاحظات مهمة", R.drawable.ic_hr_sync, countNewNotes(), "التنبيهات".equals(homeActiveModule), v -> selectHomeModule("التنبيهات"))
         ));
         box.addView(space(10));
         box.addView(programGridRow(
-                screenshotProgramCard("التقارير", "تصدير وكشوفات", R.drawable.ic_hr_quality, 0, false, v -> showDataQualityCenter()),
-                screenshotProgramCard("العناوين", "بيانات الدرجات", R.drawable.ic_hr_admin, 0, false, v -> showEmployeeDirectory())
+                screenshotProgramCard("التقارير", "تصدير وكشوفات", R.drawable.ic_hr_quality, 0, "التقارير".equals(homeActiveModule), v -> selectHomeModule("التقارير")),
+                screenshotProgramCard("العناوين", "بيانات الدرجات", R.drawable.ic_hr_admin, 0, "العناوين".equals(homeActiveModule), v -> selectHomeModule("العناوين"))
         ));
         box.addView(space(10));
         box.addView(programGridRow(
-                screenshotProgramCard("الخدمة", "حاسبة الخدمة", R.drawable.ic_hr_profile, 0, true, v -> showEmployeeDirectory()),
-                screenshotProgramCard("المطابقة", "النواقص والدرجة", R.drawable.ic_hr_quality, 0, false, v -> {
-                    employeeDirectoryFilter = "نواقص";
-                    employeeBranchFilter = "كل الشعب";
-                    showEmployeeDirectory();
-                })
+                screenshotProgramCard("الخدمة", "حاسبة الخدمة", R.drawable.ic_hr_profile, 0, "الخدمة".equals(homeActiveModule), v -> selectHomeModule("الخدمة")),
+                screenshotProgramCard("المطابقة", "النواقص والدرجة", R.drawable.ic_hr_quality, 0, "المطابقة".equals(homeActiveModule), v -> selectHomeModule("المطابقة"))
         ));
         box.addView(space(10));
         LinearLayout last = horizontal();
-        last.addView(screenshotProgramCard("حالة النظام", "تشخيص ومزامنة", R.drawable.ic_hr_sync, 0, false, v -> showStatus()), new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        last.addView(screenshotProgramCard("حالة النظام", "تشخيص ومزامنة", R.drawable.ic_hr_sync, 0, "حالة النظام".equals(homeActiveModule), v -> selectHomeModule("حالة النظام")), new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         last.addView(spaceW(8), new LinearLayout.LayoutParams(0, 1, 1));
         box.addView(last);
         return box;
@@ -527,8 +533,8 @@ public class MainActivity extends Activity {
 
     private LinearLayout screenshotProgramCard(String title, String subtitle, int iconRes, int badgeCount, boolean selected, View.OnClickListener listener) {
         LinearLayout c = card(22);
-        c.setPadding(dp(12), dp(12), dp(12), dp(12));
-        c.setMinimumHeight(dp(92));
+        c.setPadding(dp(10), dp(10), dp(10), dp(10));
+        c.setMinimumHeight(dp(82));
         c.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         c.setBackground(gradient(selected ? Color.rgb(52, 54, 67) : Color.rgb(18, 35, 78), selected ? Color.rgb(33, 45, 62) : Color.rgb(12, 25, 62), 22, selected ? GOLD : Color.rgb(42, 64, 110)));
         c.setOnClickListener(listener);
@@ -552,19 +558,19 @@ public class MainActivity extends Activity {
         labels.addView(text(subtitle, 9, Color.rgb(156, 174, 216), false));
         top.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         top.addView(spaceW(8));
-        top.addView(iconView(iconRes, selected ? Color.rgb(20, 27, 42) : Color.rgb(125, 211, 252), selected ? GOLD : Color.rgb(22, 66, 98), dp(46)));
+        top.addView(iconView(iconRes, selected ? Color.rgb(20, 27, 42) : Color.rgb(125, 211, 252), selected ? GOLD : Color.rgb(22, 66, 98), dp(40)));
         c.addView(top);
 
         View accent = new View(this);
         accent.setBackgroundColor(selected ? GOLD : Color.rgb(59, 214, 185));
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(4), dp(44));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(4), dp(34));
         lp.gravity = Gravity.RIGHT;
         c.addView(space(8));
         c.addView(accent, lp);
         return c;
     }
 
-    private LinearLayout serviceCalculatorDock() {
+    private LinearLayout homeSelectedDock() {
         LinearLayout dock = card(20);
         dock.setPadding(dp(14), dp(12), dp(14), dp(12));
         dock.setBackground(gradient(Color.rgb(17, 45, 69), Color.rgb(10, 27, 48), 20, Color.rgb(43, 83, 112)));
@@ -575,15 +581,201 @@ public class MainActivity extends Activity {
         LinearLayout labels = new LinearLayout(this);
         labels.setOrientation(LinearLayout.VERTICAL);
         labels.setGravity(Gravity.RIGHT);
-        labels.addView(text("حاسبة الخدمة · الدائمون", 18, Color.WHITE, true));
-        labels.addView(text("واجهة مطابقة للقسم السفلي الظاهر في نسخة الويب", 9, Color.rgb(156, 174, 216), false));
+        labels.addView(text(homeActiveModule + " · " + homeActiveScope, 18, Color.WHITE, true));
+        labels.addView(text("اضغط إخفاء الشريط العلوي لعرض واجهة هذا الكرت فقط", 9, Color.rgb(156, 174, 216), false));
         row.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         row.addView(spaceW(8));
         Button action = primaryButton("إخفاء الشريط العلوي");
-        action.setOnClickListener(v -> Toast.makeText(this, "سيتم ربط حاسبة الخدمة الفعلية في تحديث لاحق عند مطابقة صفحة الويب الخاصة بها", Toast.LENGTH_SHORT).show());
+        action.setOnClickListener(v -> {
+            homeChromeHidden = true;
+            showHome();
+        });
         row.addView(action, new LinearLayout.LayoutParams(dp(150), ViewGroup.LayoutParams.WRAP_CONTENT));
         dock.addView(row);
         return dock;
+    }
+
+    private LinearLayout homeCompactTopBar() {
+        LinearLayout bar = card(20);
+        bar.setPadding(dp(14), dp(12), dp(14), dp(12));
+        bar.setBackground(gradient(Color.rgb(17, 78, 99), Color.rgb(16, 41, 86), 20, Color.rgb(43, 83, 112)));
+        LinearLayout row = horizontal();
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        Button show = primaryButton("إظهار الشريط العلوي");
+        show.setOnClickListener(v -> {
+            homeChromeHidden = false;
+            showHome();
+        });
+        row.addView(show, new LinearLayout.LayoutParams(dp(158), ViewGroup.LayoutParams.WRAP_CONTENT));
+        row.addView(spaceW(10));
+        TextView title = text(homeActiveModule + " · " + homeActiveScope, 18, Color.WHITE, true);
+        title.setGravity(Gravity.RIGHT);
+        row.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        row.addView(spaceW(10));
+        row.addView(iconView(R.drawable.ic_hr_profile, Color.rgb(125, 211, 252), Color.rgb(22, 66, 98), dp(44)));
+        bar.addView(row);
+        return bar;
+    }
+
+    private LinearLayout homeActiveContent() {
+        if ("القائمة".equals(homeActiveModule)) return homeEmployeeListContent();
+        if ("ملاحظات المدير".equals(homeActiveModule)) return homeModuleShortcut("ملاحظات المدير", "افتح سجل الملاحظات لإرسال ومراجعة الحركات.", R.drawable.ic_hr_notes, PURPLE, v -> showManagerNotes());
+        if ("آخر التحديثات".equals(homeActiveModule)) return homeModuleShortcut("آخر التحديثات", "افتح مركز التحديث لمتابعة GitHub Actions و APK.", R.drawable.ic_hr_update, ORANGE, v -> showUpdateCenter());
+        if ("التنبيهات".equals(homeActiveModule)) return homeModuleShortcut("التنبيهات", "التنبيهات مرتبطة بالملاحظات الجديدة وحالة البيانات.", R.drawable.ic_hr_sync, RED, v -> showManagerNotes());
+        if ("التقارير".equals(homeActiveModule)) return homeModuleShortcut("التقارير", "التقارير تعتمد حاليًا على مركز جودة البيانات.", R.drawable.ic_hr_quality, GREEN, v -> showDataQualityCenter());
+        if ("حالة النظام".equals(homeActiveModule)) return homeModuleShortcut("حالة النظام", "افتح شاشة التشخيص والمزامنة.", R.drawable.ic_hr_sync, Color.rgb(125, 211, 252), v -> showStatus());
+        return homeEmployeeListContent();
+    }
+
+    private LinearLayout homeModuleShortcut(String title, String subtitle, int iconRes, int accent, View.OnClickListener listener) {
+        LinearLayout box = card(24);
+        box.setPadding(dp(18), dp(18), dp(18), dp(18));
+        box.setBackground(gradient(Color.rgb(18, 35, 78), Color.rgb(10, 22, 55), 24, Color.rgb(42, 64, 110)));
+        box.addView(iconView(iconRes, accent, Color.rgb(22, 66, 98), dp(60)));
+        box.addView(space(12));
+        TextView t = text(title, 24, Color.WHITE, true);
+        t.setGravity(Gravity.CENTER);
+        box.addView(t);
+        TextView s = text(subtitle, 12, Color.rgb(156, 174, 216), false);
+        s.setGravity(Gravity.CENTER);
+        box.addView(s);
+        box.addView(space(16));
+        Button open = primaryButton("فتح القسم");
+        open.setOnClickListener(listener);
+        box.addView(open);
+        return box;
+    }
+
+    private LinearLayout homeEmployeeListContent() {
+        LinearLayout page = new LinearLayout(this);
+        page.setOrientation(LinearLayout.VERTICAL);
+        page.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+
+        page.addView(homePermanentHero());
+        page.addView(space(12));
+        page.addView(homeQuickSearchPanel());
+        page.addView(space(12));
+        page.addView(homeEmployeePreviewList());
+        return page;
+    }
+
+    private LinearLayout homePermanentHero() {
+        LinearLayout box = card(24);
+        box.setPadding(dp(18), dp(18), dp(18), dp(18));
+        box.setBackground(gradient(Color.rgb(28, 55, 132), Color.rgb(9, 122, 137), 24, Color.rgb(66, 89, 156)));
+
+        LinearLayout top = horizontal();
+        LinearLayout titles = new LinearLayout(this);
+        titles.setOrientation(LinearLayout.VERTICAL);
+        titles.setGravity(Gravity.RIGHT);
+        titles.addView(text("واجهة الموظفين " + homeActiveScope, 23, Color.WHITE, true));
+        titles.addView(text("واجهة موحدة للبحث والمتابعة والوصول السريع إلى بيانات الموظفين", 10, Color.rgb(220, 232, 255), false));
+        top.addView(titles, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        top.addView(spaceW(10));
+        top.addView(iconView(R.drawable.ic_hr_people, GOLD, Color.rgb(58, 79, 137), dp(64)));
+        box.addView(top);
+
+        box.addView(space(14));
+        LinearLayout r1 = horizontal();
+        r1.addView(homeMetricCard("إصدار قاعدة البيانات", dataVersion.length() > 0 ? dataVersion : "DATA", GOLD));
+        r1.addView(spaceW(8));
+        r1.addView(homeMetricCard("إصدار البرنامج", APP_VERSION, Color.rgb(125, 211, 252)));
+        box.addView(r1);
+        box.addView(space(8));
+        LinearLayout r2 = horizontal();
+        r2.addView(homeMetricCard(homeActiveScope, String.valueOf(filteredEmployeeCount()), GOLD));
+        r2.addView(spaceW(8));
+        r2.addView(homeMetricCard("معدل آخر شهر", String.valueOf(Math.max(0, countNewNotes() + countReviewedNotes())), ORANGE));
+        box.addView(r2);
+        box.addView(space(8));
+        LinearLayout r3 = horizontal();
+        r3.addView(spaceW(0), new LinearLayout.LayoutParams(0, 1, 1));
+        r3.addView(homeMetricCard("جديد", String.valueOf(countNewNotes()), GREEN), new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        box.addView(r3);
+        box.addView(space(14));
+        Button start = primaryButton("ابدأ بالبحث");
+        start.setOnClickListener(v -> showEmployeeDirectory());
+        box.addView(start);
+        return box;
+    }
+
+    private LinearLayout homeMetricCard(String label, String value, int accent) {
+        LinearLayout c = card(16);
+        c.setPadding(dp(10), dp(9), dp(10), dp(9));
+        c.setBackground(round(Color.rgb(22, 48, 104), 16, Color.rgb(64, 91, 150)));
+        c.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        TextView v = text(value, hasDigit(value) ? 19 : 12, accent, true);
+        v.setGravity(Gravity.CENTER);
+        if (hasDigit(value)) v.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
+        TextView l = text(label, 9, Color.rgb(190, 205, 240), false);
+        l.setGravity(Gravity.CENTER);
+        c.addView(v);
+        c.addView(l);
+        return c;
+    }
+
+    private LinearLayout homeQuickSearchPanel() {
+        LinearLayout box = card(22);
+        box.setPadding(dp(14), dp(14), dp(14), dp(14));
+        box.setBackground(gradient(Color.rgb(10, 20, 52), Color.rgb(8, 17, 48), 22, Color.rgb(44, 61, 102)));
+        box.addView(text("⚡ البحث الإداري السريع", 19, Color.WHITE, true));
+        box.addView(space(10));
+        box.addView(infoStrip("بحث شامل: الاسم، الرقم الوظيفي، الأم، الشعبة"));
+        box.addView(space(8));
+        EditText search = editText("ابحث بالاسم، اسم الأم، الاختصاص، الرقم...");
+        search.setSingleLine(true);
+        box.addView(search);
+        box.addView(space(8));
+        box.addView(infoStrip("الفلاتر  ·  عرض 50  ·  المعروض في هذه الصفحة: " + Math.min(50, filteredEmployeeCount()) + " من " + filteredEmployeeCount()));
+        return box;
+    }
+
+    private LinearLayout homeEmployeePreviewList() {
+        LinearLayout box = card(22);
+        box.setPadding(dp(14), dp(14), dp(14), dp(14));
+        box.setBackground(gradient(Color.rgb(10, 20, 52), Color.rgb(8, 17, 48), 22, Color.rgb(44, 61, 102)));
+        box.addView(screenshotSectionTitle("قائمة الموظفين", R.drawable.ic_hr_people, Color.rgb(125, 211, 252)));
+        box.addView(space(10));
+        int shown = 0;
+        int index = 1;
+        for (Employee e : employees) {
+            if (!employeePassesDirectoryFilter(e)) continue;
+            box.addView(homeEmployeePreviewRow(e, index));
+            box.addView(space(8));
+            shown++;
+            index++;
+            if (shown == 6) break;
+        }
+        if (shown == 0) box.addView(emptyCard("لا توجد نتائج ضمن النطاق الحالي"));
+        return box;
+    }
+
+    private LinearLayout homeEmployeePreviewRow(Employee e, int index) {
+        LinearLayout row = horizontal();
+        row.setPadding(dp(10), dp(10), dp(10), dp(10));
+        row.setBackground(gradient(Color.rgb(28, 37, 70), Color.rgb(18, 31, 65), 18, Color.rgb(57, 74, 120)));
+        row.setOnClickListener(v -> showEmployeeProfile(e));
+
+        TextView rank = text(String.valueOf(index), 18, Color.WHITE, true);
+        rank.setGravity(Gravity.CENTER);
+        rank.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
+        rank.setBackground(round(Color.rgb(62, 67, 94), 18, Color.rgb(74, 82, 118)));
+        row.addView(rank, new LinearLayout.LayoutParams(dp(54), dp(54)));
+        row.addView(spaceW(10));
+
+        LinearLayout labels = new LinearLayout(this);
+        labels.setOrientation(LinearLayout.VERTICAL);
+        labels.setGravity(Gravity.RIGHT);
+        labels.addView(text(e.name, 18, Color.WHITE, true));
+        labels.addView(text("اضغط لعرض التفاصيل", 10, Color.rgb(156, 174, 216), false));
+        row.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        row.addView(spaceW(10));
+
+        TextView spec = text("اختصاص\n" + index, 10, GOLD, true);
+        spec.setGravity(Gravity.CENTER);
+        spec.setBackground(round(Color.rgb(20, 27, 50), 16, Color.rgb(40, 50, 86)));
+        row.addView(spec, new LinearLayout.LayoutParams(dp(64), dp(54)));
+        return row;
     }
 
     private LinearLayout nativeWorkspaceNav(String active) {
@@ -2881,9 +3073,9 @@ public class MainActivity extends Activity {
         root.addView(space(12));
         LinearLayout release = card(18);
         release.setPadding(dp(16), dp(14), dp(16), dp(14));
-        release.addView(text("محتوى R2.15.0", 18, TEXT, true));
+        release.addView(text("محتوى R2.16.0", 18, TEXT, true));
         release.addView(space(8));
-        release.addView(text("• هيدر مطابق للصورة المرفوعة بتدرج أزرق وشعار ورقة\n• وقت وتاريخ وحالة اتصال داخل الهيدر\n• نطاق السجل بثلاث كروت: دائمون، عقود، إدارة\n• أقسام البرنامج بكروت ثنائية وأيقونات مضيئة\n• كرت الخدمة وشريط حاسبة الخدمة كما في واجهة الويب", 13, TEXT, false));
+        release.addView(text("• اختيار النطاق والقسم داخل الرئيسية دون فتح شاشة بعيدة مباشرة\n• تمييز الكرت المختار بالذهبي مثل الويب\n• زر إخفاء الشريط العلوي يخفي الهيدر والقوائم\n• شاشة داخلية للقائمة والدائمين مع إحصاءات وبحث وقائمة موظفين\n• زر إظهار الشريط العلوي يرجع الواجهة الكاملة", 13, TEXT, false));
         root.addView(release);
 
         root.addView(space(12));
@@ -2900,17 +3092,17 @@ public class MainActivity extends Activity {
         LinearLayout box = card(18);
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
         box.setBackground(gradient(Color.rgb(12, 22, 58), Color.rgb(8, 16, 44), 18, BORDER));
-        box.addView(text("خارطة R2.15.0", 16, TEXT, true));
+        box.addView(text("خارطة R2.16.0", 16, TEXT, true));
         box.addView(space(8));
-        box.addView(updateRoadmapRow("01", "الهيدر", "شكل مطابق للصورة", GOLD));
+        box.addView(updateRoadmapRow("01", "الاختيار", "تمييز الكرت المختار", GOLD));
         box.addView(space(7));
-        box.addView(updateRoadmapRow("02", "نطاق السجل", "دائمون، عقود، إدارة", PRIMARY));
+        box.addView(updateRoadmapRow("02", "الإخفاء", "إخفاء الشريط والقوائم", PRIMARY));
         box.addView(space(7));
-        box.addView(updateRoadmapRow("03", "أقسام البرنامج", "شبكة كروت مثل الويب", GREEN));
+        box.addView(updateRoadmapRow("03", "القائمة", "واجهة الدائمين والبحث", GREEN));
         box.addView(space(7));
-        box.addView(updateRoadmapRow("04", "الخدمة", "كرت مميز بالذهبي", PURPLE));
+        box.addView(updateRoadmapRow("04", "الإظهار", "رجوع الشريط العلوي", PURPLE));
         box.addView(space(7));
-        box.addView(updateRoadmapRow("05", "التحديث", "Artifact خاص بمطابقة الصورة", ORANGE));
+        box.addView(updateRoadmapRow("05", "التحديث", "Artifact خاص بتفاعل الكروت", ORANGE));
         return box;
     }
 
@@ -3247,7 +3439,7 @@ public class MainActivity extends Activity {
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
         box.addView(text("سجل الملاحظات", 18, TEXT, true));
         box.addView(space(4));
-        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.15.0.", 11, MUTED, false));
+        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.16.0.", 11, MUTED, false));
         box.addView(space(8));
 
         HorizontalScrollView hsv = new HorizontalScrollView(this);
