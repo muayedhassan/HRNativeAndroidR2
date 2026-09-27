@@ -7,6 +7,8 @@ import android.os.Looper;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
+import android.content.res.ColorStateList;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
@@ -52,8 +54,8 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "R2.16.0";
-    private static final int APP_VERSION_CODE = 26;
+    private static final String APP_VERSION = "R2.17.0";
+    private static final int APP_VERSION_CODE = 27;
     private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
     private static final String UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/muayedhassan/HRNativeAndroidR2/main/latest.json";
     private static final String UPDATE_MANIFEST_URL_FALLBACK = "https://raw.githubusercontent.com/muayedhassan/HRNativeAndroidR2/master/latest.json";
@@ -131,10 +133,10 @@ public class MainActivity extends Activity {
             titleTypeface = Typeface.DEFAULT_BOLD;
         }
         try {
-            bodyTypeface = Typeface.createFromAsset(getAssets(), "fonts/SFSultan-Black.ttf");
+            bodyTypeface = Typeface.createFromAsset(getAssets(), "fonts/ZainMobile.ttf");
         } catch (Exception ignored) {
             try {
-                bodyTypeface = Typeface.createFromAsset(getAssets(), "fonts/ZainMobile.ttf");
+                bodyTypeface = Typeface.createFromAsset(getAssets(), "fonts/SFSultan-Black.ttf");
             } catch (Exception ignored2) {
                 bodyTypeface = Typeface.DEFAULT;
             }
@@ -169,7 +171,7 @@ public class MainActivity extends Activity {
         scroll.setBackgroundColor(BG);
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(12), dp(14), dp(12), dp(26));
+        root.setPadding(dp(10), dp(12), dp(10), dp(22));
         root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         root.setTextDirection(View.TEXT_DIRECTION_RTL);
         scroll.addView(root, new ScrollView.LayoutParams(
@@ -271,15 +273,15 @@ public class MainActivity extends Activity {
         }
 
         root.addView(webScreenshotHero());
-        root.addView(space(12));
+        root.addView(space(10));
         root.addView(webScreenshotScopeSection());
-        root.addView(space(12));
+        root.addView(space(10));
         root.addView(webScreenshotProgramGrid());
-        root.addView(space(12));
+        root.addView(space(10));
         root.addView(homeSelectedDock());
 
-        root.addView(space(10));
-        TextView footer = text("R2.16.0 Web Card Interaction: اختيار الكرت وإخفاء الشريط العلوي يعملان مثل الصور المرفوعة.", 11, MUTED, false);
+        root.addView(space(8));
+        TextView footer = text("R2.17.0 Compact Pro: كروت أصغر، خطوط أخف، أيقونات أوضح، ولمسة ضغط مرنة.", 10, MUTED, false);
         footer.setGravity(Gravity.CENTER);
         root.addView(footer);
     }
@@ -354,55 +356,55 @@ public class MainActivity extends Activity {
     }
 
     private LinearLayout webScreenshotHero() {
-        LinearLayout hero = card(24);
-        hero.setPadding(dp(16), dp(16), dp(16), dp(16));
-        hero.setBackground(gradient(Color.rgb(18, 42, 112), Color.rgb(9, 122, 137), 24, Color.rgb(49, 79, 145)));
+        LinearLayout hero = card(20);
+        hero.setPadding(dp(12), dp(12), dp(12), dp(12));
+        hero.setBackground(gradient(Color.rgb(18, 38, 104), Color.rgb(8, 105, 122), 20, Color.rgb(54, 83, 150)));
 
         LinearLayout top = horizontal();
-        TextView moon = text("◐", 22, Color.rgb(220, 232, 255), true);
+        TextView moon = text("◐", 18, Color.rgb(220, 232, 255), true);
         moon.setGravity(Gravity.CENTER);
-        moon.setBackground(round(Color.rgb(48, 68, 126), 16, Color.rgb(75, 99, 163)));
-        top.addView(moon, new LinearLayout.LayoutParams(dp(54), dp(54)));
-        top.addView(spaceW(10));
+        moon.setBackground(round(Color.rgb(45, 64, 121), 14, Color.rgb(75, 99, 163)));
+        top.addView(moon, new LinearLayout.LayoutParams(dp(42), dp(42)));
+        top.addView(spaceW(8));
 
         LinearLayout titles = new LinearLayout(this);
         titles.setOrientation(LinearLayout.VERTICAL);
         titles.setGravity(Gravity.RIGHT);
-        titles.addView(text("جمهورية العراق · وزارة الزراعة", 10, Color.rgb(220, 232, 255), false));
-        titles.addView(text("سجل الموظفين", 22, Color.WHITE, true));
-        titles.addView(text(APP_VERSION + " · Android Native", 9, Color.rgb(190, 205, 240), false));
+        titles.addView(text("جمهورية العراق · وزارة الزراعة", 9, Color.rgb(220, 232, 255), false));
+        titles.addView(text("سجل الموظفين", 20, Color.WHITE, true));
+        titles.addView(text(APP_VERSION + " · Native Mobile", 8, Color.rgb(190, 205, 240), false));
         top.addView(titles, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        top.addView(spaceW(10));
+        top.addView(spaceW(8));
 
-        TextView leaf = text("☘", 28, Color.rgb(183, 255, 191), true);
+        TextView leaf = text("☘", 23, Color.rgb(183, 255, 191), true);
         leaf.setGravity(Gravity.CENTER);
-        leaf.setBackground(gradient(Color.rgb(55, 89, 151), Color.rgb(29, 84, 117), 18, Color.rgb(86, 124, 180)));
-        top.addView(leaf, new LinearLayout.LayoutParams(dp(66), dp(66)));
+        leaf.setBackground(gradient(Color.rgb(55, 89, 151), Color.rgb(29, 84, 117), 16, Color.rgb(86, 124, 180)));
+        top.addView(leaf, new LinearLayout.LayoutParams(dp(48), dp(48)));
         hero.addView(top);
 
-        hero.addView(space(14));
+        hero.addView(space(10));
         View line = new View(this);
         line.setBackgroundColor(Color.rgb(48, 75, 139));
         hero.addView(line, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(1)));
-        hero.addView(space(12));
+        hero.addView(space(9));
 
         LinearLayout timeRow = horizontal();
         timeRow.addView(heroInfoPill(new SimpleDateFormat("HH:mm", Locale.US).format(new Date()) + "  ◔", GOLD));
-        timeRow.addView(spaceW(8));
+        timeRow.addView(spaceW(6));
         timeRow.addView(heroInfoPill(new SimpleDateFormat("yyyy/MM/dd", Locale.US).format(new Date()) + "  ▣", Color.rgb(255, 218, 111)));
         hero.addView(timeRow);
 
-        hero.addView(space(10));
+        hero.addView(space(8));
         LinearLayout syncBox = new LinearLayout(this);
         syncBox.setOrientation(LinearLayout.VERTICAL);
-        syncBox.setPadding(dp(12), dp(10), dp(12), dp(10));
-        syncBox.setBackground(round(Color.rgb(18, 42, 102), 18, Color.rgb(38, 74, 130)));
+        syncBox.setPadding(dp(10), dp(8), dp(10), dp(8));
+        syncBox.setBackground(round(Color.rgb(18, 42, 102), 14, Color.rgb(38, 74, 130)));
         LinearLayout syncTop = horizontal();
         syncTop.addView(spaceW(0), new LinearLayout.LayoutParams(0, 1, 1));
         syncTop.addView(lightBadge("متصل  Wi‑Fi", GREEN));
         syncBox.addView(syncTop);
-        syncBox.addView(space(8));
-        TextView last = text("آخر مزامنة ناجحة: " + lastSync, 10, Color.rgb(190, 205, 240), false);
+        syncBox.addView(space(6));
+        TextView last = text("آخر مزامنة ناجحة: " + lastSync, 9, Color.rgb(190, 205, 240), false);
         last.setGravity(Gravity.RIGHT);
         syncBox.addView(last);
         hero.addView(syncBox);
@@ -410,29 +412,29 @@ public class MainActivity extends Activity {
     }
 
     private TextView heroInfoPill(String value, int accent) {
-        TextView pill = text(value, 12, Color.rgb(226, 235, 255), true);
+        TextView pill = text(value, 10, Color.rgb(226, 235, 255), true);
         pill.setGravity(Gravity.CENTER);
         pill.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
-        pill.setPadding(dp(12), dp(10), dp(12), dp(10));
-        pill.setBackground(round(Color.rgb(18, 42, 102), 18, Color.rgb(42, 70, 130)));
+        pill.setPadding(dp(10), dp(7), dp(10), dp(7));
+        pill.setBackground(round(Color.rgb(18, 42, 102), 14, Color.rgb(42, 70, 130)));
         pill.setTextColor(accent == GOLD ? Color.rgb(226, 235, 255) : accent);
         pill.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         return pill;
     }
 
     private LinearLayout webScreenshotScopeSection() {
-        LinearLayout box = card(22);
-        box.setPadding(dp(14), dp(14), dp(14), dp(14));
-        box.setBackground(gradient(Color.rgb(7, 18, 58), Color.rgb(5, 13, 40), 22, Color.rgb(31, 58, 110)));
+        LinearLayout box = card(18);
+        box.setPadding(dp(10), dp(10), dp(10), dp(10));
+        box.setBackground(gradient(Color.rgb(7, 18, 58), Color.rgb(5, 13, 40), 18, Color.rgb(31, 58, 110)));
 
         box.addView(screenshotSectionTitle("نطاق السجل", R.drawable.ic_hr_people, Color.rgb(125, 211, 252)));
-        box.addView(space(12));
+        box.addView(space(9));
 
         LinearLayout row = horizontal();
         row.addView(screenshotScopeCard("دائمون", String.valueOf(permCount), R.drawable.ic_hr_profile, GOLD, "الدائمون".equals(homeActiveScope), v -> selectHomeScope("الدائمون", "دائم")));
-        row.addView(spaceW(8));
+        row.addView(spaceW(6));
         row.addView(screenshotScopeCard("عقود", String.valueOf(contCount), R.drawable.ic_hr_quality, MUTED, "العقود".equals(homeActiveScope), v -> selectHomeScope("العقود", "عقد")));
-        row.addView(spaceW(8));
+        row.addView(spaceW(6));
         row.addView(screenshotScopeCard("إدارة", "", R.drawable.ic_hr_admin, MUTED, "الإدارة".equals(homeActiveScope), v -> selectHomeScope("الإدارة", "الكل")));
         box.addView(row);
         return box;
@@ -453,72 +455,73 @@ public class MainActivity extends Activity {
     private LinearLayout screenshotSectionTitle(String title, int iconRes, int accent) {
         LinearLayout top = horizontal();
         top.setGravity(Gravity.CENTER_VERTICAL);
-        ImageView icon = iconView(iconRes, accent, Color.rgb(18, 42, 86), dp(42));
+        ImageView icon = iconView(iconRes, accent, Color.rgb(18, 42, 86), dp(34));
         top.addView(icon);
-        top.addView(spaceW(8));
-        TextView label = text(title, 18, Color.WHITE, true);
+        top.addView(spaceW(7));
+        TextView label = text(title, 16, Color.WHITE, true);
         label.setGravity(Gravity.RIGHT);
         top.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         return top;
     }
 
     private LinearLayout screenshotScopeCard(String label, String value, int iconRes, int accent, boolean selected, View.OnClickListener listener) {
-        LinearLayout c = card(18);
-        c.setPadding(dp(8), dp(8), dp(8), dp(8));
-        c.setMinimumHeight(dp(62));
+        LinearLayout c = card(16);
+        c.setPadding(dp(7), dp(7), dp(7), dp(7));
+        c.setMinimumHeight(dp(54));
         c.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        c.setBackground(gradient(selected ? Color.rgb(52, 54, 67) : Color.rgb(14, 29, 70), Color.rgb(10, 22, 55), 18, selected ? GOLD : Color.rgb(39, 61, 105)));
+        c.setBackground(gradient(selected ? Color.rgb(54, 51, 40) : Color.rgb(14, 29, 70), selected ? Color.rgb(32, 37, 54) : Color.rgb(10, 22, 55), 16, selected ? GOLD : Color.rgb(39, 61, 105)));
+        applyRipple(c, selected ? GOLD : Color.rgb(125, 211, 252));
         c.setOnClickListener(listener);
 
         LinearLayout inner = horizontal();
         inner.setGravity(Gravity.CENTER_VERTICAL);
-        inner.addView(iconView(iconRes, selected ? GOLD : Color.rgb(190, 205, 240), Color.rgb(35, 51, 91), dp(30)));
-        inner.addView(spaceW(6));
+        inner.addView(iconView(iconRes, selected ? GOLD : Color.rgb(190, 205, 240), Color.rgb(35, 51, 91), dp(28)));
+        inner.addView(spaceW(5));
         LinearLayout labels = new LinearLayout(this);
         labels.setOrientation(LinearLayout.VERTICAL);
         labels.setGravity(Gravity.RIGHT);
         if (value.length() > 0) {
-            TextView v = text(value, 14, selected ? Color.WHITE : Color.rgb(220, 232, 255), true);
+            TextView v = text(value, 13, selected ? Color.WHITE : Color.rgb(220, 232, 255), true);
             v.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
             labels.addView(v);
         }
-        labels.addView(text(label, 12, selected ? GOLD : Color.rgb(220, 232, 255), true));
+        labels.addView(text(label, 11, selected ? GOLD : Color.rgb(220, 232, 255), true));
         inner.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         c.addView(inner);
         return c;
     }
 
     private LinearLayout webScreenshotProgramGrid() {
-        LinearLayout box = card(22);
-        box.setPadding(dp(14), dp(14), dp(14), dp(14));
-        box.setBackground(gradient(Color.rgb(7, 18, 58), Color.rgb(5, 13, 40), 22, Color.rgb(31, 58, 110)));
+        LinearLayout box = card(18);
+        box.setPadding(dp(10), dp(10), dp(10), dp(10));
+        box.setBackground(gradient(Color.rgb(7, 18, 58), Color.rgb(5, 13, 40), 18, Color.rgb(31, 58, 110)));
 
         box.addView(screenshotSectionTitle("أقسام البرنامج", R.drawable.ic_hr_admin, Color.rgb(125, 211, 252)));
-        box.addView(space(12));
+        box.addView(space(9));
 
         box.addView(programGridRow(
                 screenshotProgramCard("ملاحظات المدير", "مشتركة", R.drawable.ic_hr_notes, 0, "ملاحظات المدير".equals(homeActiveModule), v -> selectHomeModule("ملاحظات المدير")),
                 screenshotProgramCard("القائمة", "سجل الموظفين", R.drawable.ic_hr_search, 0, "القائمة".equals(homeActiveModule), v -> selectHomeModule("القائمة"))
         ));
-        box.addView(space(10));
+        box.addView(space(7));
         box.addView(programGridRow(
                 screenshotProgramCard("آخر التحديثات", "الجديد والمراجعة", R.drawable.ic_hr_update, 0, "آخر التحديثات".equals(homeActiveModule), v -> selectHomeModule("آخر التحديثات")),
                 screenshotProgramCard("التنبيهات", "ملاحظات مهمة", R.drawable.ic_hr_sync, countNewNotes(), "التنبيهات".equals(homeActiveModule), v -> selectHomeModule("التنبيهات"))
         ));
-        box.addView(space(10));
+        box.addView(space(7));
         box.addView(programGridRow(
                 screenshotProgramCard("التقارير", "تصدير وكشوفات", R.drawable.ic_hr_quality, 0, "التقارير".equals(homeActiveModule), v -> selectHomeModule("التقارير")),
                 screenshotProgramCard("العناوين", "بيانات الدرجات", R.drawable.ic_hr_admin, 0, "العناوين".equals(homeActiveModule), v -> selectHomeModule("العناوين"))
         ));
-        box.addView(space(10));
+        box.addView(space(7));
         box.addView(programGridRow(
                 screenshotProgramCard("الخدمة", "حاسبة الخدمة", R.drawable.ic_hr_profile, 0, "الخدمة".equals(homeActiveModule), v -> selectHomeModule("الخدمة")),
                 screenshotProgramCard("المطابقة", "النواقص والدرجة", R.drawable.ic_hr_quality, 0, "المطابقة".equals(homeActiveModule), v -> selectHomeModule("المطابقة"))
         ));
-        box.addView(space(10));
+        box.addView(space(7));
         LinearLayout last = horizontal();
         last.addView(screenshotProgramCard("حالة النظام", "تشخيص ومزامنة", R.drawable.ic_hr_sync, 0, "حالة النظام".equals(homeActiveModule), v -> selectHomeModule("حالة النظام")), new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        last.addView(spaceW(8), new LinearLayout.LayoutParams(0, 1, 1));
+        last.addView(spaceW(6), new LinearLayout.LayoutParams(0, 1, 1));
         box.addView(last);
         return box;
     }
@@ -526,79 +529,80 @@ public class MainActivity extends Activity {
     private LinearLayout programGridRow(LinearLayout first, LinearLayout second) {
         LinearLayout row = horizontal();
         row.addView(first);
-        row.addView(spaceW(8));
+        row.addView(spaceW(6));
         row.addView(second);
         return row;
     }
 
     private LinearLayout screenshotProgramCard(String title, String subtitle, int iconRes, int badgeCount, boolean selected, View.OnClickListener listener) {
-        LinearLayout c = card(22);
-        c.setPadding(dp(10), dp(10), dp(10), dp(10));
-        c.setMinimumHeight(dp(82));
+        LinearLayout c = card(16);
+        c.setPadding(dp(8), dp(8), dp(8), dp(8));
+        c.setMinimumHeight(dp(68));
         c.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        c.setBackground(gradient(selected ? Color.rgb(52, 54, 67) : Color.rgb(18, 35, 78), selected ? Color.rgb(33, 45, 62) : Color.rgb(12, 25, 62), 22, selected ? GOLD : Color.rgb(42, 64, 110)));
+        c.setBackground(gradient(selected ? Color.rgb(55, 51, 39) : Color.rgb(18, 35, 78), selected ? Color.rgb(32, 38, 54) : Color.rgb(12, 25, 62), 16, selected ? GOLD : Color.rgb(42, 64, 110)));
+        applyRipple(c, selected ? GOLD : Color.rgb(125, 211, 252));
         c.setOnClickListener(listener);
 
         LinearLayout top = horizontal();
         top.setGravity(Gravity.CENTER_VERTICAL);
         if (badgeCount > 0) {
-            TextView badge = text(String.valueOf(badgeCount), 12, Color.WHITE, true);
+            TextView badge = text(String.valueOf(badgeCount), 11, Color.WHITE, true);
             badge.setGravity(Gravity.CENTER);
             badge.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
             badge.setBackground(round(RED, 18, RED));
-            top.addView(badge, new LinearLayout.LayoutParams(dp(34), dp(34)));
-            top.addView(spaceW(7));
+            top.addView(badge, new LinearLayout.LayoutParams(dp(28), dp(28)));
+            top.addView(spaceW(5));
         }
 
         LinearLayout labels = new LinearLayout(this);
         labels.setOrientation(LinearLayout.VERTICAL);
         labels.setGravity(Gravity.RIGHT);
-        labels.addView(text(title, 14, Color.WHITE, true));
-        labels.addView(space(3));
-        labels.addView(text(subtitle, 9, Color.rgb(156, 174, 216), false));
+        labels.addView(text(title, 13, Color.WHITE, true));
+        labels.addView(space(2));
+        labels.addView(text(subtitle, 8, Color.rgb(156, 174, 216), false));
         top.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        top.addView(spaceW(8));
-        top.addView(iconView(iconRes, selected ? Color.rgb(20, 27, 42) : Color.rgb(125, 211, 252), selected ? GOLD : Color.rgb(22, 66, 98), dp(40)));
+        top.addView(spaceW(6));
+        top.addView(iconView(iconRes, selected ? Color.rgb(20, 27, 42) : Color.rgb(125, 211, 252), selected ? GOLD : Color.rgb(22, 66, 98), dp(34)));
         c.addView(top);
 
         View accent = new View(this);
         accent.setBackgroundColor(selected ? GOLD : Color.rgb(59, 214, 185));
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(4), dp(34));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(34), dp(3));
         lp.gravity = Gravity.RIGHT;
-        c.addView(space(8));
+        c.addView(space(7));
         c.addView(accent, lp);
         return c;
     }
 
     private LinearLayout homeSelectedDock() {
-        LinearLayout dock = card(20);
-        dock.setPadding(dp(14), dp(12), dp(14), dp(12));
-        dock.setBackground(gradient(Color.rgb(17, 45, 69), Color.rgb(10, 27, 48), 20, Color.rgb(43, 83, 112)));
+        LinearLayout dock = card(18);
+        dock.setPadding(dp(10), dp(9), dp(10), dp(9));
+        dock.setBackground(gradient(Color.rgb(17, 45, 69), Color.rgb(10, 27, 48), 18, Color.rgb(43, 83, 112)));
         LinearLayout row = horizontal();
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.addView(iconView(R.drawable.ic_hr_profile, Color.rgb(125, 211, 252), Color.rgb(22, 66, 98), dp(44)));
-        row.addView(spaceW(10));
+        row.addView(iconView(R.drawable.ic_hr_profile, Color.rgb(125, 211, 252), Color.rgb(22, 66, 98), dp(36)));
+        row.addView(spaceW(8));
         LinearLayout labels = new LinearLayout(this);
         labels.setOrientation(LinearLayout.VERTICAL);
         labels.setGravity(Gravity.RIGHT);
-        labels.addView(text(homeActiveModule + " · " + homeActiveScope, 18, Color.WHITE, true));
-        labels.addView(text("اضغط إخفاء الشريط العلوي لعرض واجهة هذا الكرت فقط", 9, Color.rgb(156, 174, 216), false));
+        labels.addView(text(homeActiveModule + " · " + homeActiveScope, 15, Color.WHITE, true));
+        labels.addView(text("عرض واجهة هذا الكرت فقط", 8, Color.rgb(156, 174, 216), false));
         row.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        row.addView(spaceW(8));
+        row.addView(spaceW(6));
         Button action = primaryButton("إخفاء الشريط العلوي");
         action.setOnClickListener(v -> {
             homeChromeHidden = true;
             showHome();
         });
-        row.addView(action, new LinearLayout.LayoutParams(dp(150), ViewGroup.LayoutParams.WRAP_CONTENT));
+        row.addView(action, new LinearLayout.LayoutParams(dp(132), ViewGroup.LayoutParams.WRAP_CONTENT));
         dock.addView(row);
         return dock;
     }
 
     private LinearLayout homeCompactTopBar() {
-        LinearLayout bar = card(20);
-        bar.setPadding(dp(14), dp(12), dp(14), dp(12));
-        bar.setBackground(gradient(Color.rgb(17, 78, 99), Color.rgb(16, 41, 86), 20, Color.rgb(43, 83, 112)));
+        LinearLayout bar = card(18);
+        bar.setPadding(dp(10), dp(9), dp(10), dp(9));
+        bar.setBackground(gradient(Color.rgb(17, 78, 99), Color.rgb(16, 41, 86), 18, Color.rgb(43, 83, 112)));
         LinearLayout row = horizontal();
         row.setGravity(Gravity.CENTER_VERTICAL);
         Button show = primaryButton("إظهار الشريط العلوي");
@@ -606,13 +610,13 @@ public class MainActivity extends Activity {
             homeChromeHidden = false;
             showHome();
         });
-        row.addView(show, new LinearLayout.LayoutParams(dp(158), ViewGroup.LayoutParams.WRAP_CONTENT));
-        row.addView(spaceW(10));
-        TextView title = text(homeActiveModule + " · " + homeActiveScope, 18, Color.WHITE, true);
+        row.addView(show, new LinearLayout.LayoutParams(dp(142), ViewGroup.LayoutParams.WRAP_CONTENT));
+        row.addView(spaceW(8));
+        TextView title = text(homeActiveModule + " · " + homeActiveScope, 15, Color.WHITE, true);
         title.setGravity(Gravity.RIGHT);
         row.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        row.addView(spaceW(10));
-        row.addView(iconView(R.drawable.ic_hr_profile, Color.rgb(125, 211, 252), Color.rgb(22, 66, 98), dp(44)));
+        row.addView(spaceW(8));
+        row.addView(iconView(R.drawable.ic_hr_profile, Color.rgb(125, 211, 252), Color.rgb(22, 66, 98), dp(36)));
         bar.addView(row);
         return bar;
     }
@@ -628,18 +632,18 @@ public class MainActivity extends Activity {
     }
 
     private LinearLayout homeModuleShortcut(String title, String subtitle, int iconRes, int accent, View.OnClickListener listener) {
-        LinearLayout box = card(24);
-        box.setPadding(dp(18), dp(18), dp(18), dp(18));
-        box.setBackground(gradient(Color.rgb(18, 35, 78), Color.rgb(10, 22, 55), 24, Color.rgb(42, 64, 110)));
-        box.addView(iconView(iconRes, accent, Color.rgb(22, 66, 98), dp(60)));
-        box.addView(space(12));
-        TextView t = text(title, 24, Color.WHITE, true);
+        LinearLayout box = card(18);
+        box.setPadding(dp(14), dp(14), dp(14), dp(14));
+        box.setBackground(gradient(Color.rgb(18, 35, 78), Color.rgb(10, 22, 55), 18, Color.rgb(42, 64, 110)));
+        box.addView(iconView(iconRes, accent, Color.rgb(22, 66, 98), dp(48)));
+        box.addView(space(10));
+        TextView t = text(title, 20, Color.WHITE, true);
         t.setGravity(Gravity.CENTER);
         box.addView(t);
-        TextView s = text(subtitle, 12, Color.rgb(156, 174, 216), false);
+        TextView s = text(subtitle, 11, Color.rgb(156, 174, 216), false);
         s.setGravity(Gravity.CENTER);
         box.addView(s);
-        box.addView(space(16));
+        box.addView(space(12));
         Button open = primaryButton("فتح القسم");
         open.setOnClickListener(listener);
         box.addView(open);
@@ -652,47 +656,47 @@ public class MainActivity extends Activity {
         page.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
 
         page.addView(homePermanentHero());
-        page.addView(space(12));
+        page.addView(space(10));
         page.addView(homeQuickSearchPanel());
-        page.addView(space(12));
+        page.addView(space(10));
         page.addView(homeEmployeePreviewList());
         return page;
     }
 
     private LinearLayout homePermanentHero() {
-        LinearLayout box = card(24);
-        box.setPadding(dp(18), dp(18), dp(18), dp(18));
-        box.setBackground(gradient(Color.rgb(28, 55, 132), Color.rgb(9, 122, 137), 24, Color.rgb(66, 89, 156)));
+        LinearLayout box = card(18);
+        box.setPadding(dp(12), dp(12), dp(12), dp(12));
+        box.setBackground(gradient(Color.rgb(28, 55, 132), Color.rgb(9, 116, 132), 18, Color.rgb(66, 89, 156)));
 
         LinearLayout top = horizontal();
         LinearLayout titles = new LinearLayout(this);
         titles.setOrientation(LinearLayout.VERTICAL);
         titles.setGravity(Gravity.RIGHT);
-        titles.addView(text("واجهة الموظفين " + homeActiveScope, 23, Color.WHITE, true));
-        titles.addView(text("واجهة موحدة للبحث والمتابعة والوصول السريع إلى بيانات الموظفين", 10, Color.rgb(220, 232, 255), false));
+        titles.addView(text("واجهة الموظفين " + homeActiveScope, 19, Color.WHITE, true));
+        titles.addView(text("بحث ومتابعة ووصول سريع لبيانات الموظفين", 9, Color.rgb(220, 232, 255), false));
         top.addView(titles, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        top.addView(spaceW(10));
-        top.addView(iconView(R.drawable.ic_hr_people, GOLD, Color.rgb(58, 79, 137), dp(64)));
+        top.addView(spaceW(8));
+        top.addView(iconView(R.drawable.ic_hr_people, GOLD, Color.rgb(58, 79, 137), dp(48)));
         box.addView(top);
 
-        box.addView(space(14));
+        box.addView(space(10));
         LinearLayout r1 = horizontal();
         r1.addView(homeMetricCard("إصدار قاعدة البيانات", dataVersion.length() > 0 ? dataVersion : "DATA", GOLD));
-        r1.addView(spaceW(8));
+        r1.addView(spaceW(6));
         r1.addView(homeMetricCard("إصدار البرنامج", APP_VERSION, Color.rgb(125, 211, 252)));
         box.addView(r1);
-        box.addView(space(8));
+        box.addView(space(6));
         LinearLayout r2 = horizontal();
         r2.addView(homeMetricCard(homeActiveScope, String.valueOf(filteredEmployeeCount()), GOLD));
-        r2.addView(spaceW(8));
+        r2.addView(spaceW(6));
         r2.addView(homeMetricCard("معدل آخر شهر", String.valueOf(Math.max(0, countNewNotes() + countReviewedNotes())), ORANGE));
         box.addView(r2);
-        box.addView(space(8));
+        box.addView(space(6));
         LinearLayout r3 = horizontal();
         r3.addView(spaceW(0), new LinearLayout.LayoutParams(0, 1, 1));
         r3.addView(homeMetricCard("جديد", String.valueOf(countNewNotes()), GREEN), new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         box.addView(r3);
-        box.addView(space(14));
+        box.addView(space(10));
         Button start = primaryButton("ابدأ بالبحث");
         start.setOnClickListener(v -> showEmployeeDirectory());
         box.addView(start);
@@ -700,14 +704,14 @@ public class MainActivity extends Activity {
     }
 
     private LinearLayout homeMetricCard(String label, String value, int accent) {
-        LinearLayout c = card(16);
-        c.setPadding(dp(10), dp(9), dp(10), dp(9));
-        c.setBackground(round(Color.rgb(22, 48, 104), 16, Color.rgb(64, 91, 150)));
+        LinearLayout c = card(14);
+        c.setPadding(dp(8), dp(7), dp(8), dp(7));
+        c.setBackground(round(Color.rgb(22, 48, 104), 14, Color.rgb(64, 91, 150)));
         c.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        TextView v = text(value, hasDigit(value) ? 19 : 12, accent, true);
+        TextView v = text(value, hasDigit(value) ? 16 : 10, accent, true);
         v.setGravity(Gravity.CENTER);
         if (hasDigit(value)) v.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
-        TextView l = text(label, 9, Color.rgb(190, 205, 240), false);
+        TextView l = text(label, 8, Color.rgb(190, 205, 240), false);
         l.setGravity(Gravity.CENTER);
         c.addView(v);
         c.addView(l);
@@ -715,33 +719,33 @@ public class MainActivity extends Activity {
     }
 
     private LinearLayout homeQuickSearchPanel() {
-        LinearLayout box = card(22);
-        box.setPadding(dp(14), dp(14), dp(14), dp(14));
-        box.setBackground(gradient(Color.rgb(10, 20, 52), Color.rgb(8, 17, 48), 22, Color.rgb(44, 61, 102)));
-        box.addView(text("⚡ البحث الإداري السريع", 19, Color.WHITE, true));
-        box.addView(space(10));
-        box.addView(infoStrip("بحث شامل: الاسم، الرقم الوظيفي، الأم، الشعبة"));
+        LinearLayout box = card(18);
+        box.setPadding(dp(10), dp(10), dp(10), dp(10));
+        box.setBackground(gradient(Color.rgb(10, 20, 52), Color.rgb(8, 17, 48), 18, Color.rgb(44, 61, 102)));
+        box.addView(text("⚡ البحث الإداري السريع", 16, Color.WHITE, true));
         box.addView(space(8));
+        box.addView(infoStrip("بحث شامل: الاسم، الرقم الوظيفي، الأم، الشعبة"));
+        box.addView(space(7));
         EditText search = editText("ابحث بالاسم، اسم الأم، الاختصاص، الرقم...");
         search.setSingleLine(true);
         box.addView(search);
-        box.addView(space(8));
+        box.addView(space(7));
         box.addView(infoStrip("الفلاتر  ·  عرض 50  ·  المعروض في هذه الصفحة: " + Math.min(50, filteredEmployeeCount()) + " من " + filteredEmployeeCount()));
         return box;
     }
 
     private LinearLayout homeEmployeePreviewList() {
-        LinearLayout box = card(22);
-        box.setPadding(dp(14), dp(14), dp(14), dp(14));
-        box.setBackground(gradient(Color.rgb(10, 20, 52), Color.rgb(8, 17, 48), 22, Color.rgb(44, 61, 102)));
+        LinearLayout box = card(18);
+        box.setPadding(dp(10), dp(10), dp(10), dp(10));
+        box.setBackground(gradient(Color.rgb(10, 20, 52), Color.rgb(8, 17, 48), 18, Color.rgb(44, 61, 102)));
         box.addView(screenshotSectionTitle("قائمة الموظفين", R.drawable.ic_hr_people, Color.rgb(125, 211, 252)));
-        box.addView(space(10));
+        box.addView(space(8));
         int shown = 0;
         int index = 1;
         for (Employee e : employees) {
             if (!employeePassesDirectoryFilter(e)) continue;
             box.addView(homeEmployeePreviewRow(e, index));
-            box.addView(space(8));
+            box.addView(space(6));
             shown++;
             index++;
             if (shown == 6) break;
@@ -752,29 +756,30 @@ public class MainActivity extends Activity {
 
     private LinearLayout homeEmployeePreviewRow(Employee e, int index) {
         LinearLayout row = horizontal();
-        row.setPadding(dp(10), dp(10), dp(10), dp(10));
-        row.setBackground(gradient(Color.rgb(28, 37, 70), Color.rgb(18, 31, 65), 18, Color.rgb(57, 74, 120)));
+        row.setPadding(dp(8), dp(8), dp(8), dp(8));
+        row.setBackground(gradient(Color.rgb(28, 37, 70), Color.rgb(18, 31, 65), 16, Color.rgb(57, 74, 120)));
+        applyRipple(row, Color.rgb(125, 211, 252));
         row.setOnClickListener(v -> showEmployeeProfile(e));
 
-        TextView rank = text(String.valueOf(index), 18, Color.WHITE, true);
+        TextView rank = text(String.valueOf(index), 15, Color.WHITE, true);
         rank.setGravity(Gravity.CENTER);
         rank.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
-        rank.setBackground(round(Color.rgb(62, 67, 94), 18, Color.rgb(74, 82, 118)));
-        row.addView(rank, new LinearLayout.LayoutParams(dp(54), dp(54)));
-        row.addView(spaceW(10));
+        rank.setBackground(round(Color.rgb(62, 67, 94), 14, Color.rgb(74, 82, 118)));
+        row.addView(rank, new LinearLayout.LayoutParams(dp(42), dp(42)));
+        row.addView(spaceW(8));
 
         LinearLayout labels = new LinearLayout(this);
         labels.setOrientation(LinearLayout.VERTICAL);
         labels.setGravity(Gravity.RIGHT);
-        labels.addView(text(e.name, 18, Color.WHITE, true));
-        labels.addView(text("اضغط لعرض التفاصيل", 10, Color.rgb(156, 174, 216), false));
+        labels.addView(text(e.name, 15, Color.WHITE, true));
+        labels.addView(text("اضغط لعرض التفاصيل", 8, Color.rgb(156, 174, 216), false));
         row.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        row.addView(spaceW(10));
+        row.addView(spaceW(8));
 
-        TextView spec = text("اختصاص\n" + index, 10, GOLD, true);
+        TextView spec = text("اختصاص\n" + index, 8, GOLD, true);
         spec.setGravity(Gravity.CENTER);
-        spec.setBackground(round(Color.rgb(20, 27, 50), 16, Color.rgb(40, 50, 86)));
-        row.addView(spec, new LinearLayout.LayoutParams(dp(64), dp(54)));
+        spec.setBackground(round(Color.rgb(20, 27, 50), 14, Color.rgb(40, 50, 86)));
+        row.addView(spec, new LinearLayout.LayoutParams(dp(56), dp(42)));
         return row;
     }
 
@@ -3073,7 +3078,7 @@ public class MainActivity extends Activity {
         root.addView(space(12));
         LinearLayout release = card(18);
         release.setPadding(dp(16), dp(14), dp(16), dp(14));
-        release.addView(text("محتوى R2.16.0", 18, TEXT, true));
+        release.addView(text("محتوى R2.17.0", 18, TEXT, true));
         release.addView(space(8));
         release.addView(text("• اختيار النطاق والقسم داخل الرئيسية دون فتح شاشة بعيدة مباشرة\n• تمييز الكرت المختار بالذهبي مثل الويب\n• زر إخفاء الشريط العلوي يخفي الهيدر والقوائم\n• شاشة داخلية للقائمة والدائمين مع إحصاءات وبحث وقائمة موظفين\n• زر إظهار الشريط العلوي يرجع الواجهة الكاملة", 13, TEXT, false));
         root.addView(release);
@@ -3092,7 +3097,7 @@ public class MainActivity extends Activity {
         LinearLayout box = card(18);
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
         box.setBackground(gradient(Color.rgb(12, 22, 58), Color.rgb(8, 16, 44), 18, BORDER));
-        box.addView(text("خارطة R2.16.0", 16, TEXT, true));
+        box.addView(text("خارطة R2.17.0", 16, TEXT, true));
         box.addView(space(8));
         box.addView(updateRoadmapRow("01", "الاختيار", "تمييز الكرت المختار", GOLD));
         box.addView(space(7));
@@ -3439,7 +3444,7 @@ public class MainActivity extends Activity {
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
         box.addView(text("سجل الملاحظات", 18, TEXT, true));
         box.addView(space(4));
-        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.16.0.", 11, MUTED, false));
+        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.17.0.", 11, MUTED, false));
         box.addView(space(8));
 
         HorizontalScrollView hsv = new HorizontalScrollView(this);
@@ -4040,9 +4045,9 @@ public class MainActivity extends Activity {
         b.setAllCaps(false);
         b.setText(s);
         b.setTextColor(fg);
-        b.setTextSize(12);
+        b.setTextSize(11);
         b.setGravity(Gravity.CENTER);
-        b.setPadding(dp(10), 0, dp(10), 0);
+        b.setPadding(dp(9), 0, dp(9), 0);
         b.setBackground(round(bg, 18, bg == Color.WHITE ? BORDER : Color.rgb(52, 66, 125)));
         b.setTypeface(titleTypeface == null ? Typeface.DEFAULT_BOLD : titleTypeface, Typeface.BOLD);
         return b;
@@ -4077,11 +4082,22 @@ public class MainActivity extends Activity {
         ImageView icon = new ImageView(this);
         icon.setImageResource(resId);
         icon.setColorFilter(fg);
-        int pad = Math.max(dp(7), size / 5);
+        int pad = Math.max(dp(6), size / 5);
         icon.setPadding(pad, pad, pad, pad);
         icon.setBackground(gradient(bg, Color.rgb(10, 22, 60), 14, Color.rgb(52, 66, 125)));
         icon.setLayoutParams(new LinearLayout.LayoutParams(size, size));
         return icon;
+    }
+
+    private void applyRipple(View view, int color) {
+        view.setClickable(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            view.setForeground(new RippleDrawable(
+                    ColorStateList.valueOf(Color.argb(55, Color.red(color), Color.green(color), Color.blue(color))),
+                    null,
+                    null
+            ));
+        }
     }
 
     private LinearLayout horizontal() {

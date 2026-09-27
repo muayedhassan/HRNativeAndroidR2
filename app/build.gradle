@@ -10,8 +10,8 @@ android {
         applicationId 'iq.hr.mobile.nativeapp'
         minSdk 23
         targetSdk 35
-        versionCode 26
-        versionName '2.16.0'
+        versionCode 27
+        versionName '2.17.0'
     }
 
     signingConfigs {

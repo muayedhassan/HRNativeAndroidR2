@@ -1,7 +1,7 @@
 {
-  "versionCode": 26,
-  "versionName": "R2.16.0",
-  "artifactName": "HRNativeAndroid-R2.16.0-web-card-interaction-signed-apk",
+  "versionCode": 27,
+  "versionName": "R2.17.0",
+  "artifactName": "HRNativeAndroid-R2.17.0-compact-pro-mobile-ui-signed-apk",
   "apkUrl": "",
-  "notes": "R2.16.0 يضيف تفاعل كروت مطابق للويب: اختيار النطاق والقسم، تمييز الكرت المختار، إخفاء/إظهار الشريط العلوي، وواجهة القائمة للدائمين مع البحث وقائمة الموظفين. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
+  "notes": "R2.17.0 يحسن الواجهة بشكل أوضح: كروت أصغر، خطوط أخف وأكثر تناسقًا، هيدر مرن، أيقونات أنظف، وتأثير ضغط للكروت مع شاشة مخفية أكثر ترتيبًا. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
 }
