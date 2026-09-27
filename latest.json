@@ -1,7 +1,7 @@
 {
-  "versionCode": 20,
-  "versionName": "R2.10.0",
-  "artifactName": "HRNativeAndroid-R2.10.0-manager-workflow-pro-signed-apk",
+  "versionCode": 21,
+  "versionName": "R2.11.0",
+  "artifactName": "HRNativeAndroid-R2.11.0-native-web-parity-workspace-signed-apk",
   "apkUrl": "",
-  "notes": "R2.10.0 يضيف شاشة ملاحظات مدير احترافية مع لوحة سير عمل، بطاقات حركة، وبطاقات سجل محسنة. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
+  "notes": "R2.11.0 يضيف Workspace Native أقرب للويب: تنقل موحد، مركز جودة مستقل، فلتر نواقص، وحالة نظام أوسع. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
 }

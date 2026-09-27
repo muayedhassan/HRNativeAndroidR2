@@ -52,8 +52,8 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "R2.10.0";
-    private static final int APP_VERSION_CODE = 20;
+    private static final String APP_VERSION = "R2.11.0";
+    private static final int APP_VERSION_CODE = 21;
     private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
     private static final String UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/muayedhassan/HRNativeAndroidR2/main/latest.json";
     private static final String UPDATE_MANIFEST_URL_FALLBACK = "https://raw.githubusercontent.com/muayedhassan/HRNativeAndroidR2/master/latest.json";
@@ -261,6 +261,8 @@ public class MainActivity extends Activity {
 
         root.addView(commandHero());
         root.addView(space(10));
+        root.addView(nativeWorkspaceNav("الرئيسية"));
+        root.addView(space(10));
         root.addView(commandStatusPanel());
         root.addView(space(10));
         root.addView(commandModuleGrid());
@@ -280,9 +282,41 @@ public class MainActivity extends Activity {
         root.addView(homeActionBar());
 
         root.addView(space(10));
-        TextView footer = text("R2.10.0 Manager Workflow Pro: غرفة سيطرة وملاحظات مدير بتجربة عمل جديدة.", 11, MUTED, false);
+        TextView footer = text("R2.11.0 Native Web Parity Workspace: تنقل موحد، جودة مستقلة، وسجل موظفين أوسع.", 11, MUTED, false);
         footer.setGravity(Gravity.CENTER);
         root.addView(footer);
+    }
+
+    private LinearLayout nativeWorkspaceNav(String active) {
+        LinearLayout box = card(14);
+        box.setPadding(dp(7), dp(7), dp(7), dp(7));
+        box.setBackground(gradient(Color.rgb(12, 22, 58), Color.rgb(8, 16, 44), 14, BORDER));
+
+        HorizontalScrollView scroll = new HorizontalScrollView(this);
+        scroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout tabs = chipsBar();
+        workspaceNavButton(tabs, "الرئيسية", active, v -> showHome());
+        workspaceNavButton(tabs, "الموظفون", active, v -> {
+            employeeDirectoryFilter = "الكل";
+            showEmployeeDirectory();
+        });
+        workspaceNavButton(tabs, "الجودة", active, v -> showDataQualityCenter());
+        workspaceNavButton(tabs, "الملاحظات", active, v -> showManagerNotes());
+        if (currentRole.equals(ROLE_ADMIN)) {
+            workspaceNavButton(tabs, "الإدارة", active, v -> showAdminDashboard());
+        }
+        workspaceNavButton(tabs, "النظام", active, v -> showStatus());
+        workspaceNavButton(tabs, "التحديث", active, v -> showUpdateCenter());
+        scroll.addView(tabs);
+        box.addView(scroll);
+        return box;
+    }
+
+    private void workspaceNavButton(LinearLayout parent, String label, String active, View.OnClickListener listener) {
+        Button b = chipButton(label, label.equals(active));
+        b.setOnClickListener(listener);
+        parent.addView(b);
+        parent.addView(spaceW(7));
     }
 
     private LinearLayout webReplicaHeader() {
@@ -372,6 +406,11 @@ public class MainActivity extends Activity {
         Button admin = chipButton("الإدارة", false);
         admin.setOnClickListener(v -> showAdminDashboard());
         tabs.addView(admin);
+        tabs.addView(spaceW(6));
+
+        Button quality = chipButton("الجودة", false);
+        quality.setOnClickListener(v -> showDataQualityCenter());
+        tabs.addView(quality);
         tabs.addView(spaceW(6));
 
         Button updates = chipButton("التحديثات", false);
@@ -777,8 +816,7 @@ public class MainActivity extends Activity {
         r2.addView(moduleCard("لوحة المسؤول", "مؤشرات تشغيل ومراجعة سريعة", R.drawable.ic_hr_admin, GREEN, v -> showAdminDashboard()));
         r2.addView(spaceW(8));
         r2.addView(moduleCard("جودة البيانات", "اكتمال ملفات ونواقص داخل بطاقة الموظف", R.drawable.ic_hr_quality, ORANGE, v -> {
-            employeeDirectoryFilter = "الكل";
-            showEmployeeDirectory();
+            showDataQualityCenter();
         }));
         grid.addView(r2);
 
@@ -1008,6 +1046,131 @@ public class MainActivity extends Activity {
         return count;
     }
 
+    private void showDataQualityCenter() {
+        baseScreen();
+        LinearLayout header = screenHero("مركز جودة البيانات", "تحليل النواقص واكتمال ملفات الموظفين", R.drawable.ic_hr_quality, ORANGE);
+        header.addView(space(12));
+        LinearLayout badges = horizontal();
+        badges.addView(badge("اكتمال " + averageProfileCompletion() + "%", averageProfileCompletion() >= 75 ? GREEN : ORANGE));
+        badges.addView(spaceW(8));
+        badges.addView(badge("نواقص " + incompleteProfileCount(), incompleteProfileCount() == 0 ? GREEN : RED));
+        badges.addView(spaceW(8));
+        badges.addView(badge(APP_VERSION, PRIMARY));
+        header.addView(badges);
+        root.addView(header);
+
+        root.addView(space(10));
+        root.addView(nativeWorkspaceNav("الجودة"));
+        root.addView(space(10));
+        root.addView(dataQualityOverviewPanel());
+        root.addView(space(10));
+        root.addView(missingFieldsPanel());
+        root.addView(space(10));
+        root.addView(incompleteEmployeesPanel());
+
+        root.addView(space(12));
+        Button list = primaryButton("فتح سجل الموظفين مع فلتر النواقص");
+        list.setOnClickListener(v -> {
+            employeeDirectoryFilter = "نواقص";
+            showEmployeeDirectory();
+        });
+        root.addView(list);
+        root.addView(space(8));
+        Button back = outlineButton("الرجوع إلى الرئيسية");
+        back.setOnClickListener(v -> showHome());
+        root.addView(back);
+    }
+
+    private LinearLayout missingFieldsPanel() {
+        LinearLayout box = card(18);
+        box.setPadding(dp(12), dp(12), dp(12), dp(12));
+        box.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(8, 17, 48), 18, BORDER));
+        box.addView(text("أكثر الحقول الناقصة", 16, TEXT, true));
+        box.addView(space(8));
+
+        String[] fields = {"الرقم الوظيفي", "الشعبة", "العنوان الوظيفي", "الدرجة", "المرحلة", "التحصيل", "اسم الأم", "رقم الهوية", "تاريخ التعيين"};
+        int[] counts = new int[fields.length];
+        for (Employee e : employees) {
+            List<String> missing = missingFieldLabels(e);
+            for (int i = 0; i < fields.length; i++) {
+                if (missing.contains(fields[i])) counts[i]++;
+            }
+        }
+
+        for (int i = 0; i < Math.min(5, fields.length); i++) {
+            int index = topMissingIndex(counts);
+            if (counts[index] <= 0) {
+                if (i == 0) box.addView(emptyCard("لا توجد نواقص أساسية ظاهرة حاليًا"));
+                break;
+            }
+            int percent = employees.isEmpty() ? 0 : Math.round((counts[index] * 100f) / employees.size());
+            box.addView(progressStrip(fields[index] + " · " + counts[index] + " ملف", percent, branchAccent(i)));
+            counts[index] = -1;
+            if (i < 4) box.addView(space(7));
+        }
+        return box;
+    }
+
+    private LinearLayout incompleteEmployeesPanel() {
+        LinearLayout box = card(18);
+        box.setPadding(dp(12), dp(12), dp(12), dp(12));
+        box.setBackground(gradient(Color.rgb(12, 22, 58), Color.rgb(8, 16, 44), 18, BORDER));
+        LinearLayout top = horizontal();
+        top.addView(iconView(R.drawable.ic_hr_search, GOLD, Color.rgb(22, 34, 83), dp(38)));
+        top.addView(spaceW(8));
+        LinearLayout labels = new LinearLayout(this);
+        labels.setOrientation(LinearLayout.VERTICAL);
+        labels.addView(text("ملفات تحتاج مراجعة", 16, TEXT, true));
+        labels.addView(text("أول الملفات ذات النواقص الأساسية", 10, MUTED, false));
+        top.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        box.addView(top);
+        box.addView(space(10));
+
+        int shown = 0;
+        for (Employee e : employees) {
+            if (profileMissingCount(e) > 0) {
+                box.addView(qualityEmployeeRow(e));
+                box.addView(space(7));
+                shown++;
+                if (shown == 8) break;
+            }
+        }
+        if (shown == 0) box.addView(emptyCard("لا توجد ملفات ناقصة ضمن الحقول الأساسية"));
+        return box;
+    }
+
+    private LinearLayout qualityEmployeeRow(Employee e) {
+        LinearLayout row = card(13);
+        row.setPadding(dp(10), dp(9), dp(10), dp(9));
+        row.setBackground(round(Color.rgb(16, 27, 78), 13, Color.rgb(38, 52, 100)));
+        row.setOnClickListener(v -> {
+            profileTab = "جودة";
+            showEmployeeProfile(e);
+        });
+        LinearLayout top = horizontal();
+        TextView avatar = text(cardInitials(e.name), 12, Color.WHITE, true);
+        avatar.setGravity(Gravity.CENTER);
+        avatar.setBackground(round(profileCompletion(e) >= 75 ? GREEN : ORANGE, 12, profileCompletion(e) >= 75 ? GREEN : ORANGE));
+        top.addView(avatar, new LinearLayout.LayoutParams(dp(36), dp(36)));
+        top.addView(spaceW(8));
+        LinearLayout labels = new LinearLayout(this);
+        labels.setOrientation(LinearLayout.VERTICAL);
+        labels.addView(text(e.name, 13, TEXT, true));
+        labels.addView(text(safe(e.branch) + " · نواقص: " + profileMissingCount(e), 10, MUTED, false));
+        top.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        top.addView(miniBadge(profileCompletion(e) + "%", profileCompletion(e) >= 75 ? GREEN : ORANGE));
+        row.addView(top);
+        return row;
+    }
+
+    private int topMissingIndex(int[] counts) {
+        int best = 0;
+        for (int i = 1; i < counts.length; i++) {
+            if (counts[i] > counts[best]) best = i;
+        }
+        return best;
+    }
+
     private void showEmployeeDirectory() {
         baseScreen();
 
@@ -1022,6 +1185,11 @@ public class MainActivity extends Activity {
         header.addView(badges);
         root.addView(header);
 
+        root.addView(space(10));
+        root.addView(nativeWorkspaceNav("الموظفون"));
+        root.addView(space(10));
+        root.addView(directoryWorkspaceSummary());
+
         root.addView(space(9));
         LinearLayout searchCard = card(16);
         searchCard.setPadding(dp(12), dp(12), dp(12), dp(12));
@@ -1033,7 +1201,7 @@ public class MainActivity extends Activity {
         HorizontalScrollView filterScroll = new HorizontalScrollView(this);
         filterScroll.setHorizontalScrollBarEnabled(false);
         LinearLayout filterChips = chipsBar();
-        String[] employeeFilters = {"الكل", "دائم", "عقد"};
+        String[] employeeFilters = {"الكل", "دائم", "عقد", "نواقص"};
         for (String f : employeeFilters) {
             Button b = chipButton(f, f.equals(employeeDirectoryFilter));
             b.setOnClickListener(v -> {
@@ -1087,6 +1255,26 @@ public class MainActivity extends Activity {
         root.addView(back);
     }
 
+    private LinearLayout directoryWorkspaceSummary() {
+        LinearLayout box = card(18);
+        box.setPadding(dp(12), dp(12), dp(12), dp(12));
+        box.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(8, 17, 48), 18, BORDER));
+        box.addView(text("ملخص مساحة الموظفين", 16, TEXT, true));
+        box.addView(space(8));
+        LinearLayout row = horizontal();
+        row.addView(compactPill("النطاق الحالي", employeeDirectoryFilter, PRIMARY));
+        row.addView(spaceW(8));
+        row.addView(compactPill("عدد النتائج", String.valueOf(filteredEmployeeCount()), GOLD));
+        row.addView(spaceW(8));
+        row.addView(compactPill("ملفات ناقصة", String.valueOf(incompleteProfileCount()), incompleteProfileCount() == 0 ? GREEN : RED));
+        box.addView(row);
+        box.addView(space(10));
+        Button quality = outlineButton("فتح مركز جودة البيانات");
+        quality.setOnClickListener(v -> showDataQualityCenter());
+        box.addView(quality);
+        return box;
+    }
+
     private void renderEmployeeSearchResults(String query, LinearLayout container, TextView status) {
         container.removeAllViews();
         String q = normalize(query);
@@ -1116,6 +1304,7 @@ public class MainActivity extends Activity {
     private boolean employeePassesDirectoryFilter(Employee e) {
         if ("دائم".equals(employeeDirectoryFilter)) return "دائم".equals(e.typeLabel());
         if ("عقد".equals(employeeDirectoryFilter)) return "عقد".equals(e.typeLabel());
+        if ("نواقص".equals(employeeDirectoryFilter)) return profileMissingCount(e) > 0;
         return true;
     }
 
@@ -1622,9 +1811,12 @@ public class MainActivity extends Activity {
         baseScreen();
         LinearLayout header = screenHero("حالة النظام", "تشخيص نسخة Android Native ومزامنة بيانات الموظفين", R.drawable.ic_hr_sync, Color.rgb(125, 211, 252));
         root.addView(header);
+        root.addView(space(10));
+        root.addView(nativeWorkspaceNav("النظام"));
         root.addView(space(12));
         LinearLayout box = card(18);
         box.setPadding(dp(16), dp(16), dp(16), dp(16));
+        box.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(8, 17, 48), 18, BORDER));
         box.addView(text("الإصدار: " + APP_VERSION, 14, TEXT, true));
         box.addView(space(6));
         box.addView(text("رابط البيانات:\n" + DATA_URL, 12, MUTED, false));
@@ -1633,6 +1825,14 @@ public class MainActivity extends Activity {
         box.addView(text("دائم: " + permCount + " — عقود: " + contCount, 13, TEXT, false));
         box.addView(text("نسخة البيانات: " + dataVersion, 13, MUTED, false));
         box.addView(text("آخر تحديث: " + lastSync, 13, MUTED, false));
+        box.addView(space(10));
+        LinearLayout row = horizontal();
+        row.addView(compactPill("نوع الجهاز", roleLabel(), currentRole.equals(ROLE_ADMIN) ? GOLD : PURPLE));
+        row.addView(spaceW(8));
+        row.addView(compactPill("جودة", averageProfileCompletion() + "%", averageProfileCompletion() >= 75 ? GREEN : ORANGE));
+        row.addView(spaceW(8));
+        row.addView(compactPill("ملاحظات", String.valueOf(notes.size()), PRIMARY));
+        box.addView(row);
         root.addView(box);
         root.addView(space(12));
         Button sync = primaryButton(isSyncing ? "جاري تحديث البيانات..." : "تحديث من GitHub");
@@ -1662,6 +1862,8 @@ public class MainActivity extends Activity {
         header.addView(badges);
         root.addView(header);
 
+        root.addView(space(10));
+        root.addView(nativeWorkspaceNav("الإدارة"));
         root.addView(space(12));
         root.addView(executiveStatsPanel());
 
@@ -1707,6 +1909,8 @@ public class MainActivity extends Activity {
         header.addView(badges);
         root.addView(header);
 
+        root.addView(space(10));
+        root.addView(nativeWorkspaceNav("التحديث"));
         root.addView(space(12));
         root.addView(smartUpdateCard());
 
@@ -1723,9 +1927,9 @@ public class MainActivity extends Activity {
         root.addView(space(12));
         LinearLayout release = card(18);
         release.setPadding(dp(16), dp(14), dp(16), dp(14));
-        release.addView(text("محتوى R2.10.0", 18, TEXT, true));
+        release.addView(text("محتوى R2.11.0", 18, TEXT, true));
         release.addView(space(8));
-        release.addView(text("• شاشة ملاحظات مدير جديدة بنمط سير عمل\n• لوحة خطوات: الموظف، الحركة، السجل\n• بطاقات اختيار الحركة بدل الأزرار الصغيرة\n• بطاقة موظف مختار أوضح داخل نموذج الإرسال\n• بطاقات سجل الملاحظات أصبحت أوضح للمراجعة", 13, TEXT, false));
+        release.addView(text("• Workspace تنقل موحد بين الشاشات الأساسية\n• مركز جودة بيانات مستقل\n• فلتر نواقص داخل سجل الموظفين\n• ملخص أوسع لسجل الموظفين\n• حالة نظام تعرض النوع والجودة والملاحظات", 13, TEXT, false));
         root.addView(release);
 
         root.addView(space(12));
@@ -1807,6 +2011,8 @@ public class MainActivity extends Activity {
         header.addView(row);
         root.addView(header);
 
+        root.addView(space(10));
+        root.addView(nativeWorkspaceNav("الملاحظات"));
         root.addView(space(12));
         root.addView(statsPanel());
         root.addView(space(12));
@@ -2049,7 +2255,7 @@ public class MainActivity extends Activity {
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
         box.addView(text("سجل الملاحظات", 18, TEXT, true));
         box.addView(space(4));
-        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.10.0.", 11, MUTED, false));
+        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.11.0.", 11, MUTED, false));
         box.addView(space(8));
 
         HorizontalScrollView hsv = new HorizontalScrollView(this);
