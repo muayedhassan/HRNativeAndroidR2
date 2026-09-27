@@ -52,8 +52,8 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "R2.7.0";
-    private static final int APP_VERSION_CODE = 17;
+    private static final String APP_VERSION = "R2.8.0";
+    private static final int APP_VERSION_CODE = 18;
     private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
     private static final String UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/muayedhassan/HRNativeAndroidR2/main/latest.json";
     private static final String UPDATE_MANIFEST_URL_FALLBACK = "https://raw.githubusercontent.com/muayedhassan/HRNativeAndroidR2/master/latest.json";
@@ -99,6 +99,7 @@ public class MainActivity extends Activity {
     private Typeface bodyTypeface;
     private Typeface numberTypeface;
     private String employeeDirectoryFilter = "الكل";
+    private String profileTab = "وظيفة";
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final ExecutorService io = Executors.newSingleThreadExecutor();
 
@@ -269,7 +270,7 @@ public class MainActivity extends Activity {
         root.addView(webReplicaSearchWorkspace());
 
         root.addView(space(10));
-        TextView footer = text("R2.7.0 Smart Update Center: السجل مباشر، والتحديثات تُفحص من داخل التطبيق.", 11, MUTED, false);
+        TextView footer = text("R2.8.0 Employee ID Card: السجل مباشر، وملف الموظف صار بتبويبات Native.", 11, MUTED, false);
         footer.setGravity(Gravity.CENTER);
         root.addView(footer);
     }
@@ -970,77 +971,273 @@ public class MainActivity extends Activity {
     private void showEmployeeProfile(Employee e) {
         baseScreen();
 
-        root.addView(employeeProfileHero(e));
-
+        if (profileTab == null || profileTab.length() == 0) profileTab = "وظيفة";
+        root.addView(employeeDigitalIdCard(e));
+        root.addView(space(10));
+        root.addView(profileTabsBar(e));
+        root.addView(space(10));
+        root.addView(profileTabContent(e));
         root.addView(space(12));
-        LinearLayout metrics1 = horizontal();
-        metrics1.addView(profileMetric("اكتمال الملف", profileCompletion(e) + "%", profileCompletion(e) >= 75 ? GREEN : ORANGE));
-        metrics1.addView(spaceW(8));
-        metrics1.addView(profileMetric("النواقص", String.valueOf(profileMissingCount(e)), profileMissingCount(e) == 0 ? GREEN : RED));
-        root.addView(metrics1);
-        root.addView(space(8));
-        LinearLayout metrics2 = horizontal();
-        metrics2.addView(profileMetric("الرقم الوظيفي", safe(e.id), PRIMARY));
-        metrics2.addView(spaceW(8));
-        metrics2.addView(profileMetric("نوع التوظيف", e.typeLabel(), "عقد".equals(e.typeLabel()) ? ORANGE : GREEN));
-        root.addView(metrics2);
+        root.addView(profileActionDock(e));
+    }
 
-        root.addView(space(12));
-        root.addView(dataQualityCard(e));
+    private LinearLayout employeeDigitalIdCard(Employee e) {
+        LinearLayout card = card(20);
+        card.setPadding(dp(14), dp(13), dp(14), dp(13));
+        card.setBackground(gradient(Color.rgb(9, 20, 67), Color.rgb(5, 10, 32), 20, Color.rgb(82, 93, 151)));
 
-        root.addView(space(10));
-        root.addView(infoSection("البيانات الأساسية",
-                infoRow("الاسم الكامل", safe(e.name))
-                        + infoRow("اسم الأم", safe(e.motherName))
-                        + infoRow("الجنس", safe(e.gender))
-                        + infoRow("تاريخ الولادة", shortDate(e.birthDate))
-        ));
+        LinearLayout top = horizontal();
+        ImageView mark = iconView(R.drawable.ic_hr_profile, NAVY, GOLD, dp(44));
+        top.addView(mark);
+        top.addView(spaceW(9));
+        LinearLayout titleBox = new LinearLayout(this);
+        titleBox.setOrientation(LinearLayout.VERTICAL);
+        titleBox.setGravity(Gravity.RIGHT);
+        titleBox.addView(text("مديرية زراعة صلاح الدين", 13, Color.WHITE, true));
+        titleBox.addView(text("بطاقة تعريف وظيفية Native", 10, Color.rgb(190, 205, 240), false));
+        top.addView(titleBox, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        top.addView(miniBadge(APP_VERSION, PRIMARY));
+        card.addView(top);
 
-        root.addView(space(10));
-        root.addView(infoSection("البيانات الوظيفية",
-                infoRow("الشعبة", safe(e.branch))
-                        + infoRow("العنوان الوظيفي", safe(e.jobTitle))
-                        + infoRow("الحالة", safe(e.type))
-                        + infoRow("الدرجة", safe(e.grade))
-                        + infoRow("المرحلة", safe(e.step))
-                        + infoRow("الراتب", formatSalary(e.salary))
-                        + infoRow("تاريخ التعيين", shortDate(e.hireDate))
-        ));
+        card.addView(space(12));
+        LinearLayout identity = horizontal();
+        TextView avatar = text(cardInitials(e.name), 20, Color.rgb(13, 24, 68), true);
+        avatar.setGravity(Gravity.CENTER);
+        avatar.setBackground(gradient(GOLD, Color.rgb(255, 177, 55), 22, GOLD));
+        identity.addView(avatar, new LinearLayout.LayoutParams(dp(66), dp(66)));
+        identity.addView(spaceW(10));
 
-        root.addView(space(10));
-        root.addView(infoSection("الهوية الشخصية",
-                infoRow("رقم الهوية", safe(e.identityNo))
-                        + infoRow("جهة الإصدار", safe(e.identityIssuer))
-                        + infoRow("تاريخ الإصدار", shortDate(e.identityIssueDate))
-        ));
+        LinearLayout nameBox = new LinearLayout(this);
+        nameBox.setOrientation(LinearLayout.VERTICAL);
+        nameBox.setGravity(Gravity.RIGHT);
+        nameBox.addView(text(e.name, 20, Color.WHITE, true));
+        nameBox.addView(space(2));
+        nameBox.addView(text(safe(e.jobTitle), 12, Color.rgb(220, 232, 255), false));
+        nameBox.addView(space(3));
+        LinearLayout badges = horizontal();
+        badges.addView(lightBadge(e.typeLabel(), "عقد".equals(e.typeLabel()) ? ORANGE : GREEN));
+        badges.addView(spaceW(6));
+        badges.addView(lightBadge(safe(e.branch), Color.rgb(27, 43, 102)));
+        nameBox.addView(badges);
+        identity.addView(nameBox, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        card.addView(identity);
 
-        root.addView(space(10));
-        root.addView(infoSection("معلومات إضافية",
-                infoRow("التحصيل", safe(e.education))
-                        + infoRow("الاختصاص", safe(e.specialization))
-                        + infoRow("آخر تحديث للبيانات", shortDate(e.sourceUpdatedAt))
-                        + infoRow("ملاحظات", safe(e.notes))
-        ));
+        card.addView(space(12));
+        LinearLayout row1 = horizontal();
+        row1.addView(profileIdField("الرقم", safe(e.id), PRIMARY));
+        row1.addView(spaceW(7));
+        row1.addView(profileIdField("اكتمال", profileCompletion(e) + "%", profileCompletion(e) >= 75 ? GREEN : ORANGE));
+        card.addView(row1);
+        card.addView(space(7));
+        LinearLayout row2 = horizontal();
+        row2.addView(profileIdField("الدرجة", safe(e.grade), PURPLE));
+        row2.addView(spaceW(7));
+        row2.addView(profileIdField("المرحلة", safe(e.step), GOLD));
+        card.addView(row2);
 
-        root.addView(space(14));
-        Button note = primaryButton(currentRole.equals(ROLE_HR) ? "اختيار الموظف في ملاحظات المدير" : "فتح ملاحظات المدير للمراجعة");
-        note.setOnClickListener(v -> {
-            if (currentRole.equals(ROLE_HR)) {
+        card.addView(space(12));
+        LinearLayout footer = horizontal();
+        footer.addView(text("HR-" + safe(e.id) + " · " + e.typeLabel(), 11, GOLD, true), new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        footer.addView(text("GitHub Data", 10, Color.rgb(190, 205, 240), false));
+        card.addView(footer);
+        return card;
+    }
+
+    private LinearLayout profileIdField(String label, String value, int accent) {
+        LinearLayout box = card(12);
+        box.setPadding(dp(9), dp(7), dp(9), dp(7));
+        box.setBackground(gradient(Color.rgb(16, 28, 78), Color.rgb(9, 18, 50), 12, Color.rgb(45, 58, 112)));
+        box.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        TextView labelView = text(label, 9, MUTED, false);
+        TextView valueView = text(value, 15, accent, true);
+        if (hasDigit(value)) valueView.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
+        box.addView(labelView);
+        box.addView(valueView);
+        return box;
+    }
+
+    private HorizontalScrollView profileTabsBar(Employee e) {
+        HorizontalScrollView scroll = new HorizontalScrollView(this);
+        scroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout bar = chipsBar();
+        bar.setPadding(0, dp(2), 0, dp(2));
+        String[] tabs = {"وظيفة", "هوية", "تعليم", "جودة", "ملاحظات"};
+        for (String item : tabs) {
+            final String tab = item;
+            Button b = chipButton(tab, tab.equals(profileTab));
+            b.setOnClickListener(v -> {
+                profileTab = tab;
+                showEmployeeProfile(e);
+            });
+            bar.addView(b, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(42)));
+            bar.addView(spaceW(7));
+        }
+        scroll.addView(bar);
+        return scroll;
+    }
+
+    private LinearLayout profileTabContent(Employee e) {
+        LinearLayout box = card(18);
+        box.setPadding(dp(12), dp(12), dp(12), dp(12));
+        box.setBackground(gradient(Color.rgb(11, 21, 58), Color.rgb(8, 15, 42), 18, BORDER));
+        box.addView(profileTabHeader(e));
+        box.addView(space(10));
+
+        if ("هوية".equals(profileTab)) {
+            addFieldGridRow(box,
+                    profileFieldCard("الاسم الكامل", safe(e.name), PRIMARY),
+                    profileFieldCard("اسم الأم", safe(e.motherName), PURPLE));
+            addFieldGridRow(box,
+                    profileFieldCard("الجنس", safe(e.gender), GREEN),
+                    profileFieldCard("تاريخ الولادة", shortDate(e.birthDate), GOLD));
+            addFieldGridRow(box,
+                    profileFieldCard("رقم الهوية", safe(e.identityNo), ORANGE),
+                    profileFieldCard("جهة الإصدار", safe(e.identityIssuer), PRIMARY));
+            addFieldGridRow(box,
+                    profileFieldCard("تاريخ الإصدار", shortDate(e.identityIssueDate), PURPLE),
+                    profileFieldCard("حالة الملف", profileMissingCount(e) == 0 ? "مكتمل" : "يحتاج مراجعة", profileMissingCount(e) == 0 ? GREEN : RED));
+        } else if ("تعليم".equals(profileTab)) {
+            addFieldGridRow(box,
+                    profileFieldCard("التحصيل الدراسي", safe(e.education), GREEN),
+                    profileFieldCard("الاختصاص", safe(e.specialization), PRIMARY));
+            addFieldGridRow(box,
+                    profileFieldCard("آخر تحديث", shortDate(e.sourceUpdatedAt), GOLD),
+                    profileFieldCard("مصدر البيانات", "GitHub Employees JSON", PURPLE));
+            box.addView(space(4));
+            box.addView(infoStrip("هذه الصفحة تضع التعليم والاختصاص وتاريخ التحديث في منطقة واحدة مثل بطاقة الويب بدل توزيعها داخل نص طويل."));
+        } else if ("جودة".equals(profileTab)) {
+            LinearLayout metrics1 = horizontal();
+            metrics1.addView(profileMetric("اكتمال الملف", profileCompletion(e) + "%", profileCompletion(e) >= 75 ? GREEN : ORANGE));
+            metrics1.addView(spaceW(8));
+            metrics1.addView(profileMetric("النواقص", String.valueOf(profileMissingCount(e)), profileMissingCount(e) == 0 ? GREEN : RED));
+            box.addView(metrics1);
+            box.addView(space(8));
+            box.addView(dataQualityCard(e));
+        } else if ("ملاحظات".equals(profileTab)) {
+            addFieldGridRow(box,
+                    profileFieldCard("وضع الجهاز", roleLabel(), PRIMARY),
+                    profileFieldCard("الشعبة الحالية", safe(e.branch), GOLD));
+            box.addView(space(6));
+            box.addView(infoStrip("يمكن اختيار هذا الموظف مباشرة لملاحظات النقل أو التنسيب. الحفظ الحالي محلي داخل الجهاز إلى أن يتم ربط Google Sheet Sync."));
+            box.addView(space(10));
+            Button note = primaryButton("فتح ملاحظات المدير لهذا الموظف");
+            note.setOnClickListener(v -> {
                 selectedEmployee = e;
-            }
+                showManagerNotes();
+            });
+            box.addView(note);
+        } else {
+            addFieldGridRow(box,
+                    profileFieldCard("الشعبة", safe(e.branch), PRIMARY),
+                    profileFieldCard("العنوان الوظيفي", safe(e.jobTitle), GREEN));
+            addFieldGridRow(box,
+                    profileFieldCard("الحالة", safe(e.type), "عقد".equals(e.typeLabel()) ? ORANGE : GREEN),
+                    profileFieldCard("نوع التوظيف", e.typeLabel(), "عقد".equals(e.typeLabel()) ? ORANGE : GREEN));
+            addFieldGridRow(box,
+                    profileFieldCard("الدرجة", safe(e.grade), PURPLE),
+                    profileFieldCard("المرحلة", safe(e.step), GOLD));
+            addFieldGridRow(box,
+                    profileFieldCard("الراتب", formatSalary(e.salary), PRIMARY),
+                    profileFieldCard("تاريخ التعيين", shortDate(e.hireDate), GREEN));
+        }
+        return box;
+    }
+
+    private LinearLayout profileTabHeader(Employee e) {
+        LinearLayout header = horizontal();
+        ImageView icon = iconView(profileTabIcon(), Color.WHITE, profileTabColor(), dp(38));
+        header.addView(icon);
+        header.addView(spaceW(8));
+        LinearLayout titles = new LinearLayout(this);
+        titles.setOrientation(LinearLayout.VERTICAL);
+        titles.setGravity(Gravity.RIGHT);
+        titles.addView(text("تبويب " + profileTab, 16, TEXT, true));
+        titles.addView(text(profileTabSubtitle(e), 10, MUTED, false));
+        header.addView(titles, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        return header;
+    }
+
+    private int profileTabIcon() {
+        if ("هوية".equals(profileTab)) return R.drawable.ic_hr_people;
+        if ("تعليم".equals(profileTab)) return R.drawable.ic_hr_quality;
+        if ("جودة".equals(profileTab)) return R.drawable.ic_hr_sync;
+        if ("ملاحظات".equals(profileTab)) return R.drawable.ic_hr_notes;
+        return R.drawable.ic_hr_profile;
+    }
+
+    private int profileTabColor() {
+        if ("هوية".equals(profileTab)) return PURPLE;
+        if ("تعليم".equals(profileTab)) return GREEN;
+        if ("جودة".equals(profileTab)) return ORANGE;
+        if ("ملاحظات".equals(profileTab)) return PRIMARY;
+        return GOLD;
+    }
+
+    private String profileTabSubtitle(Employee e) {
+        if ("هوية".equals(profileTab)) return "بيانات شخصية وهوية مدنية مركزة";
+        if ("تعليم".equals(profileTab)) return "التحصيل والاختصاص وآخر تحديث";
+        if ("جودة".equals(profileTab)) return "اكتمال الحقول والنواقص المطلوبة";
+        if ("ملاحظات".equals(profileTab)) return "اختيار الموظف وإرسال الملاحظة";
+        return safe(e.branch) + " · " + safe(e.jobTitle);
+    }
+
+    private LinearLayout profileFieldCard(String label, String value, int accent) {
+        LinearLayout c = card(13);
+        c.setPadding(dp(10), dp(9), dp(10), dp(9));
+        c.setBackground(gradient(Color.rgb(14, 25, 70), Color.rgb(8, 17, 47), 13, Color.rgb(42, 54, 105)));
+        c.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        TextView labelView = text(label, 9, MUTED, false);
+        TextView valueView = text(value, 13, TEXT, true);
+        if (hasDigit(value)) valueView.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
+        View accentLine = new View(this);
+        accentLine.setBackgroundColor(accent);
+        c.addView(accentLine, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(2)));
+        c.addView(space(6));
+        c.addView(labelView);
+        c.addView(space(2));
+        c.addView(valueView);
+        return c;
+    }
+
+    private void addFieldGridRow(LinearLayout parent, LinearLayout first, LinearLayout second) {
+        LinearLayout row = horizontal();
+        row.addView(first);
+        row.addView(spaceW(8));
+        row.addView(second);
+        parent.addView(row);
+        parent.addView(space(8));
+    }
+
+    private TextView infoStrip(String message) {
+        TextView strip = text(message, 11, Color.rgb(218, 226, 255), false);
+        strip.setPadding(dp(10), dp(8), dp(10), dp(8));
+        strip.setBackground(round(Color.rgb(15, 26, 74), 14, Color.rgb(42, 54, 105)));
+        return strip;
+    }
+
+    private LinearLayout profileActionDock(Employee e) {
+        LinearLayout dock = card(18);
+        dock.setPadding(dp(11), dp(11), dp(11), dp(11));
+        dock.setBackground(gradient(Color.rgb(12, 23, 66), Color.rgb(8, 15, 42), 18, BORDER));
+        dock.addView(text("إجراءات الملف", 14, TEXT, true));
+        dock.addView(space(8));
+        LinearLayout row1 = horizontal();
+        Button notesButton = primaryButton(currentRole.equals(ROLE_HR) ? "اختيار للملاحظات" : "فتح المراجعة");
+        notesButton.setOnClickListener(v -> {
+            selectedEmployee = e;
             showManagerNotes();
         });
-        root.addView(note);
-
-        root.addView(space(8));
-        Button backList = outlineButton("الرجوع إلى القائمة");
-        backList.setOnClickListener(v -> showEmployeeDirectory());
-        root.addView(backList);
-
-        root.addView(space(8));
-        Button backHome = outlineButton("الرجوع إلى الرئيسية");
-        backHome.setOnClickListener(v -> showHome());
-        root.addView(backHome);
+        row1.addView(notesButton, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        row1.addView(spaceW(7));
+        Button listButton = outlineButton("القائمة");
+        listButton.setOnClickListener(v -> showEmployeeDirectory());
+        row1.addView(listButton, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        dock.addView(row1);
+        dock.addView(space(8));
+        Button home = outlineButton("الرجوع إلى الرئيسية");
+        home.setOnClickListener(v -> showHome());
+        dock.addView(home);
+        return dock;
     }
 
     private LinearLayout employeeProfileHero(Employee e) {
@@ -1311,9 +1508,9 @@ public class MainActivity extends Activity {
         root.addView(space(12));
         LinearLayout release = card(18);
         release.setPadding(dp(16), dp(14), dp(16), dp(14));
-        release.addView(text("محتوى R2.7.0", 18, TEXT, true));
+        release.addView(text("محتوى R2.8.0", 18, TEXT, true));
         release.addView(space(8));
-        release.addView(text("• إضافة مركز تحديث ذكي داخل التطبيق\n• فحص latest.json من GitHub لمعرفة آخر إصدار\n• مقارنة versionCode الحالي بالإصدار المنشور\n• تحميل APK من رابط مباشر داخل latest.json\n• فتح شاشة تثبيت Android تلقائيًا بعد التحميل\n• إضافة FileProvider آمن لمشاركة ملف APK مع المثبّت\n• إبقاء التحديث اليدوي كخطة احتياطية", 13, TEXT, false));
+        release.addView(text("• بطاقة هوية وظيفية كبيرة داخل ملف الموظف\n• تبويبات Native: وظيفة، هوية، تعليم، جودة، ملاحظات\n• مربعات معلومات صغيرة بدل النص الطويل\n• اختيار الموظف مباشرة لملاحظات المدير\n• إبقاء مركز التحديث الذكي كآلية تحديث داخل التطبيق", 13, TEXT, false));
         root.addView(release);
 
         root.addView(space(12));
@@ -1550,7 +1747,7 @@ public class MainActivity extends Activity {
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
         box.addView(text("سجل الملاحظات", 18, TEXT, true));
         box.addView(space(4));
-        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.7.0.", 11, MUTED, false));
+        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.8.0.", 11, MUTED, false));
         box.addView(space(8));
 
         HorizontalScrollView hsv = new HorizontalScrollView(this);

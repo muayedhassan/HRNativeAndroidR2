@@ -1,7 +1,7 @@
 {
-  "versionCode": 17,
-  "versionName": "R2.7.0",
-  "artifactName": "HRNativeAndroid-R2.7.0-smart-in-app-update-center-signed-apk",
+  "versionCode": 18,
+  "versionName": "R2.8.0",
+  "artifactName": "HRNativeAndroid-R2.8.0-employee-id-card-tabs-signed-apk",
   "apkUrl": "",
-  "notes": "R2.7.0 يضيف مركز تحديث ذكي داخل التطبيق. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
+  "notes": "R2.8.0 يضيف بطاقة هوية وظيفية وتبويبات ملف الموظف داخل Native. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
 }
