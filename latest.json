@@ -1,7 +1,7 @@
 {
-  "versionCode": 23,
-  "versionName": "R2.13.0",
-  "artifactName": "HRNativeAndroid-R2.13.0-five-suite-upgrade-signed-apk",
+  "versionCode": 24,
+  "versionName": "R2.14.0",
+  "artifactName": "HRNativeAndroid-R2.14.0-web-layout-parity-signed-apk",
   "apkUrl": "",
-  "notes": "R2.13.0 يضيف خمس حزم تحديثات واضحة: Home Command Center، Directory Board، Executive 360+، Notes Studio، وSystem Health Cockpit. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
+  "notes": "R2.14.0 يقرّب الواجهة الرئيسية من نسخة الويب: قسم نطاق السجل وقسم أقسام البرنامج مع كروت واضحة ومسار تنقل أبسط. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
 }

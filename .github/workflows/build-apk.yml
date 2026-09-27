@@ -51,6 +51,6 @@ jobs:
       - name: Upload signed APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: HRNativeAndroid-R2.13.0-five-suite-upgrade-signed-apk
+          name: HRNativeAndroid-R2.14.0-web-layout-parity-signed-apk
           path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error

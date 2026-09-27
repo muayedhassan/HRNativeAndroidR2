@@ -52,8 +52,8 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "R2.13.0";
-    private static final int APP_VERSION_CODE = 23;
+    private static final String APP_VERSION = "R2.14.0";
+    private static final int APP_VERSION_CODE = 24;
     private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
     private static final String UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/muayedhassan/HRNativeAndroidR2/main/latest.json";
     private static final String UPDATE_MANIFEST_URL_FALLBACK = "https://raw.githubusercontent.com/muayedhassan/HRNativeAndroidR2/master/latest.json";
@@ -260,32 +260,16 @@ public class MainActivity extends Activity {
     private void showHome() {
         baseScreen();
 
-        root.addView(commandHero());
+        root.addView(webReplicaHeader());
         root.addView(space(10));
         root.addView(nativeWorkspaceNav("الرئيسية"));
         root.addView(space(10));
-        root.addView(fiveSuiteControlPanel());
+        root.addView(webRecordScopeSection());
         root.addView(space(10));
-        root.addView(commandStatusPanel());
-        root.addView(space(10));
-        root.addView(commandModuleGrid());
-        root.addView(space(10));
-        root.addView(dataQualityOverviewPanel());
-        root.addView(space(10));
-        root.addView(branchDistributionPanel());
-        root.addView(space(10));
-        root.addView(recentNotesPanel());
-        root.addView(space(10));
-        root.addView(webReplicaSubTabs());
-        root.addView(space(10));
-        root.addView(webReplicaModeTabs());
-        root.addView(space(10));
-        root.addView(webReplicaSearchWorkspace());
-        root.addView(space(10));
-        root.addView(homeActionBar());
+        root.addView(webProgramSectionsSection());
 
         root.addView(space(10));
-        TextView footer = text("R2.13.0 Five Suite: خمس حزم مرئية للواجهة، السجل، الملف، الملاحظات، والنظام.", 11, MUTED, false);
+        TextView footer = text("R2.14.0 Web Layout Parity: الواجهة الرئيسية مقسمة مثل نسخة الويب إلى نطاق السجل وأقسام البرنامج.", 11, MUTED, false);
         footer.setGravity(Gravity.CENTER);
         root.addView(footer);
     }
@@ -300,17 +284,17 @@ public class MainActivity extends Activity {
         top.addView(spaceW(9));
         LinearLayout labels = new LinearLayout(this);
         labels.setOrientation(LinearLayout.VERTICAL);
-        labels.addView(text("حزمة التحديثات الخمس", 17, Color.WHITE, true));
-        labels.addView(text("واجهة قيادة واضحة تجمع أهم مناطق التطبيق في شاشة واحدة", 10, Color.rgb(190, 205, 240), false));
+        labels.addView(text("مطابقة واجهة الويب", 17, Color.WHITE, true));
+        labels.addView(text("تقسيم الواجهة إلى نطاق السجل وأقسام البرنامج", 10, Color.rgb(190, 205, 240), false));
         top.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         top.addView(miniBadge(APP_VERSION, GOLD));
         box.addView(top);
         box.addView(space(10));
 
         LinearLayout r1 = horizontal();
-        r1.addView(suiteTile("01", "الرئيسية", "Command Center", R.drawable.ic_hr_people, GOLD, v -> showHome()));
+        r1.addView(suiteTile("01", "الرئيسية", "واجهة الويب", R.drawable.ic_hr_people, GOLD, v -> showHome()));
         r1.addView(spaceW(8));
-        r1.addView(suiteTile("02", "السجل", "Directory Board", R.drawable.ic_hr_search, PRIMARY, v -> {
+        r1.addView(suiteTile("02", "السجل", "نطاق السجل", R.drawable.ic_hr_search, PRIMARY, v -> {
             employeeDirectoryFilter = "الكل";
             employeeBranchFilter = "كل الشعب";
             showEmployeeDirectory();
@@ -319,18 +303,18 @@ public class MainActivity extends Activity {
         box.addView(space(8));
 
         LinearLayout r2 = horizontal();
-        r2.addView(suiteTile("03", "الملف", "Executive 360+", R.drawable.ic_hr_profile, GREEN, v -> {
+        r2.addView(suiteTile("03", "الملف", "ملخص الموظف", R.drawable.ic_hr_profile, GREEN, v -> {
             employeeDirectoryFilter = "الكل";
             employeeBranchFilter = "كل الشعب";
             showEmployeeDirectory();
         }));
         r2.addView(spaceW(8));
-        r2.addView(suiteTile("04", "الملاحظات", "Notes Studio", R.drawable.ic_hr_notes, PURPLE, v -> showManagerNotes()));
+        r2.addView(suiteTile("04", "الملاحظات", "ملخص الملاحظات", R.drawable.ic_hr_notes, PURPLE, v -> showManagerNotes()));
         box.addView(r2);
         box.addView(space(8));
 
         LinearLayout r3 = horizontal();
-        r3.addView(suiteTile("05", "النظام", "Health Cockpit", R.drawable.ic_hr_sync, ORANGE, v -> showStatus()));
+        r3.addView(suiteTile("05", "النظام", "حالة النظام", R.drawable.ic_hr_sync, ORANGE, v -> showStatus()));
         r3.addView(spaceW(8));
         r3.addView(suiteTile("UP", "التحديث", "Actions APK", R.drawable.ic_hr_update, Color.rgb(125, 211, 252), v -> showUpdateCenter()));
         box.addView(r3);
@@ -413,6 +397,142 @@ public class MainActivity extends Activity {
         TextView status = text("الواجهة الآن تبدأ من السجل والبحث مباشرة، بنفس منطق نسخة الويب وليس لوحة اختصارات فقط.", 10, Color.rgb(207, 226, 244), false);
         header.addView(status);
         return header;
+    }
+
+    private LinearLayout webRecordScopeSection() {
+        LinearLayout box = card(18);
+        box.setPadding(dp(12), dp(12), dp(12), dp(12));
+        box.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(8, 17, 48), 18, BORDER));
+
+        box.addView(webSectionTitle("نطاق السجل", "اختر نطاق الموظفين أولاً مثل واجهة الويب", R.drawable.ic_hr_people, GOLD));
+        box.addView(space(10));
+
+        LinearLayout r1 = horizontal();
+        r1.addView(webScopeCard("كل السجل", String.valueOf(employees.size()), "عرض جميع الموظفين", GOLD, v -> {
+            employeeDirectoryFilter = "الكل";
+            employeeBranchFilter = "كل الشعب";
+            showEmployeeDirectory();
+        }));
+        r1.addView(spaceW(8));
+        r1.addView(webScopeCard("الدائميون", String.valueOf(permCount), "الملاك الدائم", GREEN, v -> {
+            employeeDirectoryFilter = "دائم";
+            employeeBranchFilter = "كل الشعب";
+            showEmployeeDirectory();
+        }));
+        box.addView(r1);
+        box.addView(space(8));
+
+        LinearLayout r2 = horizontal();
+        r2.addView(webScopeCard("العقود", String.valueOf(contCount), "موظفو العقود", ORANGE, v -> {
+            employeeDirectoryFilter = "عقد";
+            employeeBranchFilter = "كل الشعب";
+            showEmployeeDirectory();
+        }));
+        r2.addView(spaceW(8));
+        r2.addView(webScopeCard("النواقص", String.valueOf(incompleteProfileCount()), "ملفات تحتاج مراجعة", RED, v -> {
+            employeeDirectoryFilter = "نواقص";
+            employeeBranchFilter = "كل الشعب";
+            showEmployeeDirectory();
+        }));
+        box.addView(r2);
+        return box;
+    }
+
+    private LinearLayout webProgramSectionsSection() {
+        LinearLayout box = card(18);
+        box.setPadding(dp(12), dp(12), dp(12), dp(12));
+        box.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(8, 17, 48), 18, BORDER));
+
+        box.addView(webSectionTitle("أقسام البرنامج", "نفس تقسيم الويب: كل قسم يفتح شاشة العمل الخاصة به", R.drawable.ic_hr_admin, PRIMARY));
+        box.addView(space(10));
+
+        LinearLayout r1 = horizontal();
+        r1.addView(webProgramCard("سجل الموظفين", "بحث، فلاتر، وبطاقات", R.drawable.ic_hr_search, GOLD, v -> {
+            employeeDirectoryFilter = "الكل";
+            employeeBranchFilter = "كل الشعب";
+            showEmployeeDirectory();
+        }));
+        r1.addView(spaceW(8));
+        r1.addView(webProgramCard("ملاحظات المدير", "نقل، تنسيب، ومراجعة", R.drawable.ic_hr_notes, PURPLE, v -> showManagerNotes()));
+        box.addView(r1);
+        box.addView(space(8));
+
+        LinearLayout r2 = horizontal();
+        r2.addView(webProgramCard("جودة البيانات", "نواقص واكتمال الملفات", R.drawable.ic_hr_quality, ORANGE, v -> showDataQualityCenter()));
+        r2.addView(spaceW(8));
+        if (currentRole.equals(ROLE_ADMIN)) {
+            r2.addView(webProgramCard("لوحة المسؤول", "تحليل ومراجعة", R.drawable.ic_hr_admin, GREEN, v -> showAdminDashboard()));
+        } else {
+            r2.addView(webProgramCard("نوع الجهاز", "صلاحية مدير الموارد", R.drawable.ic_hr_profile, GREEN, v -> showDeviceRoleSetup()));
+        }
+        box.addView(r2);
+        box.addView(space(8));
+
+        LinearLayout r3 = horizontal();
+        r3.addView(webProgramCard("حالة النظام", "بيانات، دور، جودة", R.drawable.ic_hr_sync, Color.rgb(125, 211, 252), v -> showStatus()));
+        r3.addView(spaceW(8));
+        r3.addView(webProgramCard("مركز التحديث", "GitHub Actions و APK", R.drawable.ic_hr_update, PRIMARY, v -> showUpdateCenter()));
+        box.addView(r3);
+        return box;
+    }
+
+    private LinearLayout webSectionTitle(String title, String subtitle, int iconRes, int accent) {
+        LinearLayout top = horizontal();
+        top.addView(iconView(iconRes, accent, Color.rgb(22, 34, 83), dp(38)));
+        top.addView(spaceW(8));
+        LinearLayout labels = new LinearLayout(this);
+        labels.setOrientation(LinearLayout.VERTICAL);
+        labels.addView(text(title, 17, TEXT, true));
+        labels.addView(text(subtitle, 10, MUTED, false));
+        top.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        return top;
+    }
+
+    private LinearLayout webScopeCard(String title, String value, String subtitle, int accent, View.OnClickListener listener) {
+        LinearLayout c = card(14);
+        c.setPadding(dp(10), dp(10), dp(10), dp(10));
+        c.setMinimumHeight(dp(102));
+        c.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        c.setBackground(gradient(Color.rgb(16, 27, 78), Color.rgb(9, 18, 52), 14, Color.rgb(38, 52, 100)));
+        c.setOnClickListener(listener);
+
+        TextView number = text(value, 24, accent, true);
+        number.setGravity(Gravity.CENTER);
+        number.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
+        c.addView(number);
+        TextView label = text(title, 13, TEXT, true);
+        label.setGravity(Gravity.CENTER);
+        c.addView(label);
+        TextView sub = text(subtitle, 9, MUTED, false);
+        sub.setGravity(Gravity.CENTER);
+        c.addView(sub);
+        return c;
+    }
+
+    private LinearLayout webProgramCard(String title, String subtitle, int iconRes, int accent, View.OnClickListener listener) {
+        LinearLayout c = card(14);
+        c.setPadding(dp(10), dp(10), dp(10), dp(10));
+        c.setMinimumHeight(dp(108));
+        c.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        c.setBackground(gradient(Color.rgb(16, 27, 78), Color.rgb(9, 18, 52), 14, Color.rgb(38, 52, 100)));
+        c.setOnClickListener(listener);
+
+        LinearLayout top = horizontal();
+        top.addView(iconView(iconRes, accent, Color.rgb(22, 34, 83), dp(36)));
+        top.addView(spaceW(8));
+        LinearLayout labels = new LinearLayout(this);
+        labels.setOrientation(LinearLayout.VERTICAL);
+        labels.addView(text(title, 13, TEXT, true));
+        labels.addView(text(subtitle, 9, MUTED, false));
+        top.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        c.addView(top);
+        c.addView(space(8));
+        View line = new View(this);
+        line.setBackgroundColor(accent);
+        c.addView(line, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(2)));
+        c.addView(space(6));
+        c.addView(text("فتح القسم", 10, accent, true));
+        return c;
     }
 
     private LinearLayout webReplicaModeTabs() {
@@ -790,7 +910,7 @@ public class MainActivity extends Activity {
         titles.addView(space(3));
         titles.addView(text("مديرية زراعة صلاح الدين · Android Native", 11, Color.rgb(207, 226, 244), false));
         titles.addView(space(3));
-        titles.addView(text(APP_VERSION + " Five Suite", 11, GOLD, true));
+        titles.addView(text(APP_VERSION + " Web Layout", 11, GOLD, true));
         top.addView(titles, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         hero.addView(top);
 
@@ -1560,8 +1680,8 @@ public class MainActivity extends Activity {
         top.addView(spaceW(9));
         LinearLayout labels = new LinearLayout(this);
         labels.setOrientation(LinearLayout.VERTICAL);
-        labels.addView(text("Directory Board", 16, Color.WHITE, true));
-        labels.addView(text("لوحة تشغيل مختصرة للسجل قبل البحث", 10, Color.rgb(190, 205, 240), false));
+        labels.addView(text("لوحة نطاق السجل", 16, Color.WHITE, true));
+        labels.addView(text("تشغيل مختصر للسجل قبل البحث مثل نسخة الويب", 10, Color.rgb(190, 205, 240), false));
         top.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         box.addView(top);
         box.addView(space(10));
@@ -2045,7 +2165,7 @@ public class MainActivity extends Activity {
         top.addView(spaceW(9));
         LinearLayout labels = new LinearLayout(this);
         labels.setOrientation(LinearLayout.VERTICAL);
-        labels.addView(text("Executive 360+", 16, Color.WHITE, true));
+        labels.addView(text("ملخص الموظف", 16, Color.WHITE, true));
         labels.addView(text("خلاصة سريعة قبل فتح تفاصيل الهوية والوظيفة والجودة", 10, Color.rgb(190, 205, 240), false));
         top.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         box.addView(top);
@@ -2396,7 +2516,7 @@ public class MainActivity extends Activity {
         top.addView(spaceW(9));
         LinearLayout labels = new LinearLayout(this);
         labels.setOrientation(LinearLayout.VERTICAL);
-        labels.addView(text("System Health Cockpit", 16, Color.WHITE, true));
+        labels.addView(text("لوحة حالة النظام", 16, Color.WHITE, true));
         labels.addView(text("فحص سريع للدور، البيانات، الجودة، والتحديث", 10, Color.rgb(190, 205, 240), false));
         top.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         box.addView(top);
@@ -2518,9 +2638,9 @@ public class MainActivity extends Activity {
         root.addView(space(12));
         LinearLayout release = card(18);
         release.setPadding(dp(16), dp(14), dp(16), dp(14));
-        release.addView(text("محتوى R2.13.0", 18, TEXT, true));
+        release.addView(text("محتوى R2.14.0", 18, TEXT, true));
         release.addView(space(8));
-        release.addView(text("• Home Command Center لحزم التحديث الخمس\n• Directory Board داخل سجل الموظفين\n• Executive 360+ داخل ملف الموظف\n• Notes Studio لتحليل الحركات\n• System Health Cockpit للنظام والتحديث", 13, TEXT, false));
+        release.addView(text("• إعادة ترتيب الرئيسية مثل نسخة الويب\n• قسم نطاق السجل بكروت: الكل، الدائميون، العقود، النواقص\n• قسم أقسام البرنامج بكروت تشغيل واضحة\n• تقليل ازدحام الرئيسية وإبقاء المسار أسرع\n• تحديث Artifact وlatest.json للنسخة الجديدة", 13, TEXT, false));
         root.addView(release);
 
         root.addView(space(12));
@@ -2537,17 +2657,17 @@ public class MainActivity extends Activity {
         LinearLayout box = card(18);
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
         box.setBackground(gradient(Color.rgb(12, 22, 58), Color.rgb(8, 16, 44), 18, BORDER));
-        box.addView(text("خارطة R2.13.0", 16, TEXT, true));
+        box.addView(text("خارطة R2.14.0", 16, TEXT, true));
         box.addView(space(8));
-        box.addView(updateRoadmapRow("01", "الرئيسية", "مركز قيادة بخمس حزم", GOLD));
+        box.addView(updateRoadmapRow("01", "الرئيسية", "تقسيم مطابق للويب", GOLD));
         box.addView(space(7));
-        box.addView(updateRoadmapRow("02", "السجل", "Board تشغيل وفلاتر أوضح", PRIMARY));
+        box.addView(updateRoadmapRow("02", "نطاق السجل", "كروت الكل والدائم والعقد والنواقص", PRIMARY));
         box.addView(space(7));
-        box.addView(updateRoadmapRow("03", "الملف", "Executive 360+ للموظف", GREEN));
+        box.addView(updateRoadmapRow("03", "أقسام البرنامج", "كروت فتح أقسام التطبيق", GREEN));
         box.addView(space(7));
-        box.addView(updateRoadmapRow("04", "الملاحظات", "Notes Studio للحركات", PURPLE));
+        box.addView(updateRoadmapRow("04", "الترتيب", "تقليل اللوحات المتفرقة", PURPLE));
         box.addView(space(7));
-        box.addView(updateRoadmapRow("05", "النظام", "Health Cockpit للتشخيص", ORANGE));
+        box.addView(updateRoadmapRow("05", "التحديث", "Artifact خاص بمطابقة الويب", ORANGE));
         return box;
     }
 
@@ -2884,7 +3004,7 @@ public class MainActivity extends Activity {
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
         box.addView(text("سجل الملاحظات", 18, TEXT, true));
         box.addView(space(4));
-        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.13.0.", 11, MUTED, false));
+        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.14.0.", 11, MUTED, false));
         box.addView(space(8));
 
         HorizontalScrollView hsv = new HorizontalScrollView(this);
@@ -2917,7 +3037,7 @@ public class MainActivity extends Activity {
         top.addView(spaceW(9));
         LinearLayout labels = new LinearLayout(this);
         labels.setOrientation(LinearLayout.VERTICAL);
-        labels.addView(text("Notes Studio", 16, Color.WHITE, true));
+        labels.addView(text("ملخص الملاحظات", 16, Color.WHITE, true));
         labels.addView(text("تحليل سريع للحركات قبل فتح تفاصيل السجل", 10, Color.rgb(190, 205, 240), false));
         top.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         box.addView(top);
