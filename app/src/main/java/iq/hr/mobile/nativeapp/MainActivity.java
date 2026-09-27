@@ -52,8 +52,8 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "R2.8.0";
-    private static final int APP_VERSION_CODE = 18;
+    private static final String APP_VERSION = "R2.9.0";
+    private static final int APP_VERSION_CODE = 19;
     private static final String DATA_URL = "https://raw.githubusercontent.com/muayedhassan/employees/main/data/employees.json";
     private static final String UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/muayedhassan/HRNativeAndroidR2/main/latest.json";
     private static final String UPDATE_MANIFEST_URL_FALLBACK = "https://raw.githubusercontent.com/muayedhassan/HRNativeAndroidR2/master/latest.json";
@@ -259,18 +259,28 @@ public class MainActivity extends Activity {
     private void showHome() {
         baseScreen();
 
-        root.addView(webReplicaHeader());
-        root.addView(space(8));
-        root.addView(webReplicaModeTabs());
-        root.addView(space(8));
-        root.addView(webReplicaStatsRow());
-        root.addView(space(8));
+        root.addView(commandHero());
+        root.addView(space(10));
+        root.addView(commandStatusPanel());
+        root.addView(space(10));
+        root.addView(commandModuleGrid());
+        root.addView(space(10));
+        root.addView(dataQualityOverviewPanel());
+        root.addView(space(10));
+        root.addView(branchDistributionPanel());
+        root.addView(space(10));
+        root.addView(recentNotesPanel());
+        root.addView(space(10));
         root.addView(webReplicaSubTabs());
-        root.addView(space(8));
+        root.addView(space(10));
+        root.addView(webReplicaModeTabs());
+        root.addView(space(10));
         root.addView(webReplicaSearchWorkspace());
+        root.addView(space(10));
+        root.addView(homeActionBar());
 
         root.addView(space(10));
-        TextView footer = text("R2.8.0 Employee ID Card: السجل مباشر، وملف الموظف صار بتبويبات Native.", 11, MUTED, false);
+        TextView footer = text("R2.9.0 Operations Dashboard: غرفة سيطرة، جودة بيانات، توزيع شعب، وملاحظات مباشرة.", 11, MUTED, false);
         footer.setGravity(Gravity.CENTER);
         root.addView(footer);
     }
@@ -441,6 +451,211 @@ public class MainActivity extends Activity {
         } else {
             status.setText("نتائج البحث: " + matched + (matched > 12 ? " · عُرضت أول 12 نتيجة" : ""));
         }
+    }
+
+    private LinearLayout dataQualityOverviewPanel() {
+        LinearLayout box = card(18);
+        box.setPadding(dp(12), dp(12), dp(12), dp(12));
+        box.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(8, 17, 48), 18, Color.rgb(42, 56, 118)));
+
+        LinearLayout top = horizontal();
+        top.addView(iconView(R.drawable.ic_hr_quality, ORANGE, Color.rgb(22, 34, 83), dp(40)));
+        top.addView(spaceW(9));
+        LinearLayout labels = new LinearLayout(this);
+        labels.setOrientation(LinearLayout.VERTICAL);
+        labels.addView(text("مركز جودة البيانات", 16, TEXT, true));
+        labels.addView(text("قراءة مباشرة لاكتمال ملفات الموظفين", 10, MUTED, false));
+        top.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        box.addView(top);
+
+        int average = averageProfileCompletion();
+        int incomplete = incompleteProfileCount();
+        box.addView(space(10));
+        LinearLayout metrics = horizontal();
+        metrics.addView(compactPill("متوسط الاكتمال", average + "%", average >= 75 ? GREEN : ORANGE));
+        metrics.addView(spaceW(8));
+        metrics.addView(compactPill("ملفات تحتاج مراجعة", String.valueOf(incomplete), incomplete == 0 ? GREEN : RED));
+        metrics.addView(spaceW(8));
+        metrics.addView(compactPill("مصدر البيانات", dataVersion.length() > 12 ? "GitHub" : dataVersion, PRIMARY));
+        box.addView(metrics);
+
+        box.addView(space(10));
+        box.addView(progressStrip("اكتمال السجل العام", average, average >= 75 ? GREEN : ORANGE));
+        box.addView(space(8));
+        TextView hint = text("اضغط على أي بطاقة موظف لعرض النواقص داخل تبويب جودة.", 10, MUTED, false);
+        hint.setGravity(Gravity.CENTER);
+        box.addView(hint);
+        return box;
+    }
+
+    private LinearLayout branchDistributionPanel() {
+        LinearLayout box = card(18);
+        box.setPadding(dp(12), dp(12), dp(12), dp(12));
+        box.setBackground(gradient(Color.rgb(12, 22, 58), Color.rgb(8, 16, 44), 18, BORDER));
+
+        LinearLayout top = horizontal();
+        top.addView(iconView(R.drawable.ic_hr_people, GOLD, Color.rgb(22, 34, 83), dp(40)));
+        top.addView(spaceW(9));
+        LinearLayout titleBox = new LinearLayout(this);
+        titleBox.setOrientation(LinearLayout.VERTICAL);
+        titleBox.addView(text("توزيع الشعب", 16, TEXT, true));
+        titleBox.addView(text("أكثر الشعب ظهورًا في بيانات الموظفين", 10, MUTED, false));
+        top.addView(titleBox, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        box.addView(top);
+        box.addView(space(10));
+
+        List<String> labels = new ArrayList<>();
+        List<Integer> counts = new ArrayList<>();
+        for (Employee e : employees) {
+            String branch = safe(e.branch);
+            if ("-".equals(branch)) branch = "غير محدد";
+            int index = labels.indexOf(branch);
+            if (index >= 0) {
+                counts.set(index, counts.get(index) + 1);
+            } else {
+                labels.add(branch);
+                counts.add(1);
+            }
+        }
+
+        if (labels.isEmpty()) {
+            box.addView(emptyCard("لا توجد شعب متاحة حاليًا"));
+            return box;
+        }
+
+        for (int i = 0; i < Math.min(5, labels.size()); i++) {
+            int topIndex = topBranchIndex(counts);
+            String label = labels.get(topIndex);
+            int count = counts.get(topIndex);
+            int percent = employees.isEmpty() ? 0 : Math.round((count * 100f) / employees.size());
+            box.addView(branchDistributionRow(label, count, percent, branchAccent(i)));
+            counts.set(topIndex, -1);
+            if (i < Math.min(5, labels.size()) - 1) box.addView(space(7));
+        }
+        return box;
+    }
+
+    private LinearLayout recentNotesPanel() {
+        LinearLayout box = card(18);
+        box.setPadding(dp(12), dp(12), dp(12), dp(12));
+        box.setBackground(gradient(Color.rgb(13, 24, 68), Color.rgb(8, 17, 48), 18, BORDER));
+
+        LinearLayout top = horizontal();
+        top.addView(iconView(R.drawable.ic_hr_notes, PURPLE, Color.rgb(22, 34, 83), dp(40)));
+        top.addView(spaceW(9));
+        LinearLayout labels = new LinearLayout(this);
+        labels.setOrientation(LinearLayout.VERTICAL);
+        labels.addView(text("آخر ملاحظات المدير", 16, TEXT, true));
+        labels.addView(text("متابعة مختصرة قبل فتح السجل الكامل", 10, MUTED, false));
+        top.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        box.addView(top);
+        box.addView(space(10));
+
+        if (notes.isEmpty()) {
+            box.addView(emptyCard("لا توجد ملاحظات محفوظة بعد"));
+        } else {
+            for (int i = 0; i < Math.min(3, notes.size()); i++) {
+                box.addView(compactNoteRow(notes.get(i)));
+                if (i < Math.min(3, notes.size()) - 1) box.addView(space(7));
+            }
+        }
+
+        box.addView(space(10));
+        Button open = outlineButton("فتح سجل الملاحظات");
+        open.setOnClickListener(v -> showManagerNotes());
+        box.addView(open);
+        return box;
+    }
+
+    private LinearLayout progressStrip(String label, int percent, int accent) {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(9), dp(8), dp(9), dp(8));
+        box.setBackground(round(Color.rgb(16, 27, 78), 13, Color.rgb(38, 52, 100)));
+
+        LinearLayout row = horizontal();
+        row.addView(text(label, 11, TEXT, true), new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        TextView value = text(percent + "%", 13, accent, true);
+        value.setGravity(Gravity.CENTER);
+        value.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
+        row.addView(value);
+        box.addView(row);
+        box.addView(space(7));
+
+        LinearLayout track = new LinearLayout(this);
+        track.setOrientation(LinearLayout.HORIZONTAL);
+        track.setBackground(round(Color.rgb(8, 15, 42), 10, Color.rgb(31, 43, 85)));
+        View fill = new View(this);
+        fill.setBackground(round(accent, 10, accent));
+        track.addView(fill, new LinearLayout.LayoutParams(0, dp(8), Math.max(1, percent)));
+        View rest = new View(this);
+        track.addView(rest, new LinearLayout.LayoutParams(0, dp(8), Math.max(1, 100 - percent)));
+        box.addView(track);
+        return box;
+    }
+
+    private LinearLayout branchDistributionRow(String branch, int count, int percent, int accent) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.VERTICAL);
+        row.setPadding(dp(9), dp(8), dp(9), dp(8));
+        row.setBackground(round(Color.rgb(16, 27, 78), 13, Color.rgb(38, 52, 100)));
+
+        LinearLayout labels = horizontal();
+        TextView title = text(branch, 12, TEXT, true);
+        labels.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        TextView value = text(count + " · " + percent + "%", 12, accent, true);
+        value.setTypeface(numberTypeface == null ? Typeface.MONOSPACE : numberTypeface, Typeface.BOLD);
+        labels.addView(value);
+        row.addView(labels);
+        row.addView(space(6));
+        row.addView(progressStrip("حصة الشعبة", percent, accent));
+        return row;
+    }
+
+    private LinearLayout compactNoteRow(ManagerNote note) {
+        LinearLayout row = card(13);
+        row.setPadding(dp(10), dp(9), dp(10), dp(9));
+        row.setBackground(round(Color.rgb(16, 27, 78), 13, Color.rgb(38, 52, 100)));
+        LinearLayout top = horizontal();
+        top.addView(miniBadge(note.type, movementColor(note.type)));
+        top.addView(spaceW(6));
+        top.addView(miniBadge("new".equals(note.status) ? "جديد" : "مراجع", "new".equals(note.status) ? ORANGE : GREEN));
+        row.addView(top);
+        row.addView(space(6));
+        row.addView(text(note.employee, 13, TEXT, true));
+        row.addView(text(safe(note.fromBranch) + (note.toBranch.length() > 0 ? " ← " + note.toBranch : ""), 10, MUTED, false));
+        return row;
+    }
+
+    private int averageProfileCompletion() {
+        if (employees.isEmpty()) return 0;
+        int sum = 0;
+        for (Employee e : employees) sum += profileCompletion(e);
+        return Math.round(sum / (float) employees.size());
+    }
+
+    private int incompleteProfileCount() {
+        int count = 0;
+        for (Employee e : employees) {
+            if (profileMissingCount(e) > 0) count++;
+        }
+        return count;
+    }
+
+    private int topBranchIndex(List<Integer> counts) {
+        int best = 0;
+        for (int i = 1; i < counts.size(); i++) {
+            if (counts.get(i) > counts.get(best)) best = i;
+        }
+        return best;
+    }
+
+    private int branchAccent(int index) {
+        if (index == 0) return GOLD;
+        if (index == 1) return GREEN;
+        if (index == 2) return PRIMARY;
+        if (index == 3) return PURPLE;
+        return ORANGE;
     }
 
     private LinearLayout commandHero() {
@@ -1508,9 +1723,9 @@ public class MainActivity extends Activity {
         root.addView(space(12));
         LinearLayout release = card(18);
         release.setPadding(dp(16), dp(14), dp(16), dp(14));
-        release.addView(text("محتوى R2.8.0", 18, TEXT, true));
+        release.addView(text("محتوى R2.9.0", 18, TEXT, true));
         release.addView(space(8));
-        release.addView(text("• بطاقة هوية وظيفية كبيرة داخل ملف الموظف\n• تبويبات Native: وظيفة، هوية، تعليم، جودة، ملاحظات\n• مربعات معلومات صغيرة بدل النص الطويل\n• اختيار الموظف مباشرة لملاحظات المدير\n• إبقاء مركز التحديث الذكي كآلية تحديث داخل التطبيق", 13, TEXT, false));
+        release.addView(text("• غرفة سيطرة جديدة في الشاشة الرئيسية\n• مركز جودة بيانات مع نسبة اكتمال عامة\n• توزيع الشعب الأكثر ظهورًا مع أشرطة تقدم\n• آخر ملاحظات المدير في الرئيسية\n• إبقاء بطاقة الموظف R2.8.0 والتحديث الذكي", 13, TEXT, false));
         root.addView(release);
 
         root.addView(space(12));
@@ -1747,7 +1962,7 @@ public class MainActivity extends Activity {
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
         box.addView(text("سجل الملاحظات", 18, TEXT, true));
         box.addView(space(4));
-        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.8.0.", 11, MUTED, false));
+        box.addView(text("يتم حفظ الملاحظات محليًا، مع تنظيم العرض حسب نوع الجهاز والصلاحيات المحددة في R2.9.0.", 11, MUTED, false));
         box.addView(space(8));
 
         HorizontalScrollView hsv = new HorizontalScrollView(this);

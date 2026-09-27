@@ -1,7 +1,7 @@
 {
-  "versionCode": 18,
-  "versionName": "R2.8.0",
-  "artifactName": "HRNativeAndroid-R2.8.0-employee-id-card-tabs-signed-apk",
+  "versionCode": 19,
+  "versionName": "R2.9.0",
+  "artifactName": "HRNativeAndroid-R2.9.0-operations-dashboard-signed-apk",
   "apkUrl": "",
-  "notes": "R2.8.0 يضيف بطاقة هوية وظيفية وتبويبات ملف الموظف داخل Native. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
+  "notes": "R2.9.0 يضيف غرفة سيطرة رئيسية مع جودة البيانات، توزيع الشعب، أحدث الملاحظات، وبحث سريع. ضع هنا رابط APK مباشر عند نشر إصدار أحدث."
 }
